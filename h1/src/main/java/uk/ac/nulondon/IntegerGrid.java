@@ -10,9 +10,15 @@ public class IntegerGrid {
 
     // Constructs a grid by deep copying an existing 2D array
     public IntegerGrid(int[][] inputGrid) {
-        grid = new int[inputGrid.length][];
-        for (int i = 0; i < inputGrid.length; i++) {
-            grid[i] = inputGrid[i].clone();
+        if (inputGrid != null && inputGrid.length > 0 && inputGrid[0].length > 0) {
+            grid = new int[inputGrid.length][inputGrid[0].length];
+            for (int i = 0; i < inputGrid.length; i++) {
+                for (int j = 0; j < inputGrid[0].length; j++) {
+                    grid[i][j] = inputGrid[i][j];
+                }
+            }
+        } else {
+            grid = new int[0][0];
         }
     }
 
