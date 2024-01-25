@@ -13,7 +13,7 @@ public class StringFuncs {
 
     // A cleaner implementation of startsWithY
 // Beware!! An empty string will break this.
-    public boolean startsWithY2(String test) {
+    public static boolean startsWithY2(String test) {
         return(test.charAt(0) == 'y' || test.charAt(0) == 'Y');
     }
 
@@ -31,7 +31,7 @@ public class StringFuncs {
     }
 
     // A faster version of bingoWord
-    public String bingoWord2(String toConvert) {
+    public static String bingoWord2(String toConvert) {
         return(Character.toUpperCase(toConvert.charAt(0)) +
                 Integer.toString(toConvert.length()));
     }
