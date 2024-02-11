@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 
 public class ShoppingCategories {
-    private ArrayList<ShoppingList> categories;
+    private ArrayList<ShoppingList>
+            categories;
 
 
 }
