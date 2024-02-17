@@ -26,9 +26,9 @@ public class ComputedPixelImageTest {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Pixel pixel = getPixel(image, x, y);
-                assertEquals(0, pixel.getRed());
-                assertEquals(0, pixel.getGreen());
-                assertEquals(0, pixel.getBlue());
+                assertEquals(255, pixel.getRed());
+                assertEquals(255, pixel.getGreen());
+                assertEquals(255, pixel.getBlue());
             }
         }
     }
@@ -59,9 +59,9 @@ public class ComputedPixelImageTest {
         // Since the pixel is outside the bounds, no changes should occur
         // Verify this by checking a pixel inside the bounds remains unchanged
         Pixel resultPixel = getPixel(image, 9, 9);
-        assertEquals(0, resultPixel.getRed());
-        assertEquals(0, resultPixel.getGreen());
-        assertEquals(0, resultPixel.getBlue());
+        assertEquals(255, resultPixel.getRed());
+        assertEquals(255, resultPixel.getGreen());
+        assertEquals(255, resultPixel.getBlue());
     }
 
     @Test
