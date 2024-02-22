@@ -52,7 +52,7 @@
         @Test
         void testRemoveSpecificColMiddle() {
             int originalSize = imageProcessor.getGrid().size();
-            int colToRemove = 1; // Example column index
+            int colToRemove = 1;
             imageProcessor.removeSpecificCol(colToRemove);
             assertEquals(originalSize - 1, imageProcessor.getGrid().size(), "Column should be removed.");
         }

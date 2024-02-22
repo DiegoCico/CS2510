@@ -36,7 +36,7 @@ public class Pixel {
      * @param RGB the string containing RGB values in "red, green, blue" format
      */
     public Pixel(String RGB) {
-        String[] rgbA = RGB.split(", ");
+        String[] rgbA = RGB.split(",");
         if(rgbA.length != 3) {
             System.out.println("Unable to create pixel, creating a blank pixel instead.");
             r = 255;
