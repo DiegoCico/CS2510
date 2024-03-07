@@ -1,3 +1,5 @@
+package FirstQuiz;
+
 import java.util.ArrayList;
 
 public class ShoppingCategories {
