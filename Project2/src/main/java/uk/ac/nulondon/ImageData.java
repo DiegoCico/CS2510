@@ -33,7 +33,11 @@ public class ImageData {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int rgb = image.getRGB(x, y);
-                    graph.addEdge(rgb);
+                    int r = (rgb >> 16) & 0xff;
+                    int g = (rgb >> 8) & 0xff;
+                    int b = rgb & 0xff;
+                    Pixel pixel = new Pixel(r, g, b);
+                    graph.addEdge(pixel);
                 }
                 graph = new Graph();
             }
@@ -77,24 +81,8 @@ public class ImageData {
     }
 
     public int getEnergy(int x, int y){
-        int horizontal = 0;
-        int vertical = 0;
-        int br = 0;
 
-        if(x-- < width){
-            throw in
-        }
-
-        try {
-        for(int i = 0; i < 8; i++) {
-
-        }
-        } catch (IOException e) {
-
-        }
-
-
-        return horizontal + vertical;
+        return -1;
     }
 
 
@@ -103,7 +91,7 @@ public class ImageData {
      * using a LinkedList of List of Integers
      */
     class Graph {
-        private LinkedList<List<Integer>> adjLists;
+        private LinkedList<List<Pixel>> adjLists;
 
         /**
          * Constructor for graph
@@ -115,7 +103,7 @@ public class ImageData {
         /**
          * @param vertex is the vertex data to be added into the graph
          */
-        void addEdge(int vertex) {
+        void addEdge(Pixel vertex) {
             this.adjLists.getLast().addLast(vertex);
         }
 
