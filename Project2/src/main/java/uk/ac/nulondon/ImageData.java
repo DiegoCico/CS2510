@@ -13,10 +13,10 @@ public class ImageData {
     int width;
     // variable to store height
     int height;
-    // graph variable
-    Graph graph;
-    //TODO: CALCULATIONS
+    ArrayList<Pixel> pixels;
 
+
+    //TODO: CALCULATIONS
 
     /**
      * @param file will be the filepath to an image that will be converted into a graph
@@ -24,11 +24,12 @@ public class ImageData {
      *             the filepath does not exist.
      */
     public void importImage(String file) {
-        try{
+        try {
             BufferedImage image = ImageIO.read(new File(file));
 
             width = image.getWidth();
             height = image.getHeight();
+            Pixel previousPixel = null;
 
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
@@ -36,15 +37,25 @@ public class ImageData {
                     int r = (rgb >> 16) & 0xff;
                     int g = (rgb >> 8) & 0xff;
                     int b = rgb & 0xff;
-                    Pixel pixel = new Pixel(r, g, b);
-                    graph.addEdge(pixel);
+                    Pixel currentPixel = new Pixel(r, g, b);
+                    pixels.add(currentPixel);
+
+                    if (x > 0) {
+                        previousPixel.setRight(currentPixel);
+                        currentPixel.setLeft(previousPixel);
+                    }
+                    previousPixel = currentPixel;
+                    pixels.add(currentPixel);
                 }
-                graph = new Graph();
+
+                previousPixel = null;
             }
+
         } catch (IOException e) {
-            System.out.println("IMAGE NOT FOUND " + e );
+            System.out.println("IMAGE NOT FOUND " + e);
         }
     }
+
 
     /**
      * @param file this is the filepath where the altered image will be stored at.
@@ -72,48 +83,25 @@ public class ImageData {
         }
     }
 
-    public int br(int[] intArr){
-        int sum = 0;
-        for(int i = 0; i < intArr.length; i++){
-            sum += intArr[i];
-        }
-        return sum / intArr.length;
+    public int calculateBrightness(Pixel pixel){
+        int sum = pixel.getBlue() + pixel.getGreen() + pixel.getRed();
+        return sum /3;
     }
 
-    public int getEnergy(int x, int y){
+    public double getEnergy(int x, int y) {
+        int index = x * y;
+        int horizontal[] = {0, 0};
+        int vertical[] = {0, 0};
 
-        return -1;
-    }
+
+        horizontal[0] = calculateBrightness(pixels.get(index - 4)) + calculateBrightness(pixels.get(index - 3)) * 2 + calculateBrightness(pixels.get(index - 2));
+        horizontal[1] = calculateBrightness(pixels.get(index + 4)) + calculateBrightness(pixels.get(index + 3)) * 2 + calculateBrightness(pixels.get(index + 2));
+
+        vertical[0] = calculateBrightness(pixels.get(index - 4)) + calculateBrightness(pixels.get(index - 1)) * 2 + calculateBrightness(pixels.get(index + 2));
+        vertical[1] = calculateBrightness(pixels.get(index + 4)) + calculateBrightness(pixels.get(index + 1)) * 2 + calculateBrightness(pixels.get(index - 2));
 
 
-    /**
-     * This class Graph contains how the image will be represented
-     * using a LinkedList of List of Integers
-     */
-    class Graph {
-        private LinkedList<List<Pixel>> adjLists;
-
-        /**
-         * Constructor for graph
-         */
-        public Graph() {
-            adjLists = new LinkedList<>();
-        }
-
-        /**
-         * @param vertex is the vertex data to be added into the graph
-         */
-        void addEdge(Pixel vertex) {
-            this.adjLists.getLast().addLast(vertex);
-        }
-
-        /**
-         * @param vertex vertex data to get the data in the graph
-         * @param edge   edge data to get the data in the graph
-         */
-        void getVertex(int vertex, int edge) {
-            this.adjLists.get(edge).get(vertex);
-        }
+        return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2 + Math.pow((vertical[1] - vertical[0]), 2)));
     }
 
 }
