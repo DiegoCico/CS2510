@@ -83,25 +83,79 @@ public class ImageData {
         }
     }
 
+    public boolean outOfBounds(Pixel pixel){
+        return pixel.getLeft() == null || pixel.getRight() == null;
+    }
+
+    public void iterateEnergy(){
+
+        for (int i = 0; i < pixels.size(); i++) {
+            Pixel up = i == 0? null : pixels.get(i-1);
+            Pixel down = i == pixels.size()-1? null : pixels.get(i+1);
+            Pixel pix = pixels.get(i);
+
+            Pixel iter = pixels.get(i);
+
+            while (iter.getRight() != null) {
+                if(up == null){
+                    pix = pix.getRight();
+                    down = down.getRight();
+                    pix.setEnergy(calcEnergy(up,iter,down));
+                } else if(down == null){
+                    pix = pix.getRight();
+                    up = up.getRight();
+                    pix.setEnergy(calcEnergy(up,iter,down));
+                } else {
+                    up = up.getRight();
+                    pix = pix.getRight();
+                    down = down.getRight();
+                    pix.setEnergy(calcEnergy(up, iter, down));
+                }
+            }
+        }
+    }
+
+    /**
+     * This will calculate the brightness of a pixel by averaging teh RGB values
+     * @param pixel given pixel to calculate brightness
+     * @return the brightness of that given pixel
+     */
+
     public int calculateBrightness(Pixel pixel){
         int sum = pixel.getBlue() + pixel.getGreen() + pixel.getRed();
         return sum /3;
     }
 
-    public double getEnergy(int x, int y) {
-        int index = x * y;
+    /**
+     * This will calculate energy based on three given pixels
+     * @param up this is the pixel above the pixel to be calculated
+     * @param middle this is the pixel to be calculated
+     * @param down this is the pixel below the pixel to be calculated
+     * @return the energy of the middle pixel
+     */
+    public float calcEnergy(Pixel up, Pixel middle, Pixel down) {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
 
+        if(up == null) {
+            up = middle;
+        }
+        if(down == null) {
+            down = middle;
+        }
 
-        horizontal[0] = calculateBrightness(pixels.get(index - 4)) + calculateBrightness(pixels.get(index - 3)) * 2 + calculateBrightness(pixels.get(index - 2));
-        horizontal[1] = calculateBrightness(pixels.get(index + 4)) + calculateBrightness(pixels.get(index + 3)) * 2 + calculateBrightness(pixels.get(index + 2));
+        horizontal[0] = calculateBrightness(up.getLeft()) + calculateBrightness(up) * 2 + calculateBrightness(up.getRight());
+        horizontal[1] = calculateBrightness(down.getLeft()) + calculateBrightness(down) * 2 + calculateBrightness(down.getRight());
 
-        vertical[0] = calculateBrightness(pixels.get(index - 4)) + calculateBrightness(pixels.get(index - 1)) * 2 + calculateBrightness(pixels.get(index + 2));
-        vertical[1] = calculateBrightness(pixels.get(index + 4)) + calculateBrightness(pixels.get(index + 1)) * 2 + calculateBrightness(pixels.get(index - 2));
+        vertical[0] = calculateBrightness(up.getLeft()) + calculateBrightness(middle.getLeft()) * 2 + calculateBrightness(down.getLeft());
+        vertical[1] = calculateBrightness(up.getRight()) + calculateBrightness(middle.getRight()) * 2 + calculateBrightness(down.getRight());
 
 
-        return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2 + Math.pow((vertical[1] - vertical[0]), 2)));
+        return (float) Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2 + Math.pow((vertical[1] - vertical[0]), 2)));
     }
+
+
+
+
 
 }
