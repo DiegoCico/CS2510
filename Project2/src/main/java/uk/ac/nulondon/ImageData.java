@@ -83,37 +83,45 @@ public class ImageData {
         }
     }
 
-    public boolean outOfBounds(Pixel pixel){
-        return pixel.getLeft() == null || pixel.getRight() == null;
-    }
+    public void iterateEnergy() {
+        for (Pixel pix : pixels) {
+            Pixel up = pixels.indexOf(pix) > 0 ? pixels.get(pixels.indexOf(pix) - 1) : null;
+            Pixel down = pixels.indexOf(pix) < pixels.size() - 1 ? pixels.get(pixels.indexOf(pix) + 1) : null;
 
-    public void iterateEnergy(){
-
-        for (int i = 0; i < pixels.size(); i++) {
-            Pixel up = i == 0? null : pixels.get(i-1);
-            Pixel down = i == pixels.size()-1? null : pixels.get(i+1);
-            Pixel pix = pixels.get(i);
-
-            Pixel iter = pixels.get(i);
-
-            while (iter.getRight() != null) {
-                if(up == null){
-                    pix = pix.getRight();
-                    down = down.getRight();
-                    pix.setEnergy(calcEnergy(up,iter,down));
-                } else if(down == null){
-                    pix = pix.getRight();
-                    up = up.getRight();
-                    pix.setEnergy(calcEnergy(up,iter,down));
-                } else {
-                    up = up.getRight();
-                    pix = pix.getRight();
-                    down = down.getRight();
-                    pix.setEnergy(calcEnergy(up, iter, down));
-                }
+            while (pix != null) {
+                pix.setEnergy(calcEnergy(up, pix, down));
+                up = (up == null) ? null : up.getRight();
+                down = (down == null) ? null : down.getRight();
+                pix = pix.getRight();
             }
         }
     }
+
+
+//    public void iterateEnergy(){
+//
+//        for (int i = 0; i < pixels.size(); i++) {
+//            Pixel up = i == 0? null : pixels.get(i-1);
+//            Pixel down = i == pixels.size()-1? null : pixels.get(i+1);
+//            Pixel pix = pixels.get(i);
+//
+//            while (pix.getRight() != null) {
+//                pix.setEnergy(calcEnergy(up,pix,down));
+//
+//                if(up == null){
+//                    pix = pix.getRight();
+//                    down = down.getRight();
+//                } else if(down == null){
+//                    pix = pix.getRight();
+//                    up = up.getRight();
+//                } else {
+//                    up = up.getRight();
+//                    pix = pix.getRight();
+//                    down = down.getRight();
+//                }
+//            }
+//        }
+//    }
 
     /**
      * This will calculate the brightness of a pixel by averaging teh RGB values
@@ -133,7 +141,7 @@ public class ImageData {
      * @param down this is the pixel below the pixel to be calculated
      * @return the energy of the middle pixel
      */
-    public float calcEnergy(Pixel up, Pixel middle, Pixel down) {
+    public double calcEnergy(Pixel up, Pixel middle, Pixel down) {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
 

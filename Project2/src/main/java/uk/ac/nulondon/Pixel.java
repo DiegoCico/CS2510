@@ -10,7 +10,7 @@ public class Pixel {
     private int b;
     private Pixel left = null;
     private Pixel right;
-    private float energy;
+    private double energy;
 
     /**
      * Default constructor that creates a black pixel (all values set to 0).
@@ -39,7 +39,8 @@ public class Pixel {
      * @param green the green component to set
      * @param blue the blue component to set
      */
-    public void setEnergy(float e){ energy = e; }
+    public void setEnergy(double e){ energy = e; }
+    public double getEnergy(){ return energy; }
     public void setPixel(int red, int green, int blue){
         r = red;
         g = green;
