@@ -15,7 +15,7 @@ public class ImageData {
     int width;
     // variable to store height
     int height;
-    ArrayList<Pixel> pixels;
+    ArrayList<Pixel> pixels = new ArrayList<>();
 
     /**
      * @param file will be the filepath to an image that will be converted into a graph
@@ -162,24 +162,12 @@ public class ImageData {
         return result;
     }
 
-    public int getMinIndex(double[] arr){
-        double min = arr[0];
-        int index = 0;
-        for(int i = 1; i < arr.length; i++){
-            if(arr[i] < min){
-                min = arr[i];
-                index = i;
-            }
-        }
-        return index;
-    }
-
 
     public List<Pixel> getSeam() {
+        if (pixels.isEmpty()) return new ArrayList<>();
 
-        if (pixels == null || pixels.isEmpty()) return new ArrayList<>();
-        double[] previousValues = new double[width]; // the row above's values
-        double[] currentValues = new double[width];  // current row's values
+        double[] previousValues = new double[pixels.size()]; // the row above's values
+        double[] currentValues = new double[pixels.size()];  // current row's values
         List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
         List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
         int col = 0;
@@ -187,10 +175,8 @@ public class ImageData {
         Pixel currentPixel;
 
         // initializing for first row
-        while (col < pixels.get(0).getSizeLink()) {
+        while (col < pixels.getFirst().getSizeLink()) {
             previousValues[col] = p.getEnergy();
-
-            // one seam per column
             previousSeams.add(concat(p, List.of()));
             p = p.getRight();
             col++;
@@ -208,28 +194,38 @@ public class ImageData {
                     bestSoFar = previousValues[index - 1];
                     ref = index - 1;
                 }
-                if (index < pixels.size() - 1 && previousValues[index + 1] < bestSoFar) {
+                if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar) {
                     bestSoFar = previousValues[index + 1];
                     ref = index + 1;
                 }
 
+
                 currentValues[index] = bestSoFar + currentPixel.getEnergy();
-
-                // append this new pixel to existing seams
                 currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
-
                 index++;
-                // move to neighbor
                 currentPixel = currentPixel.getRight();
+
             }
 
             previousValues = currentValues;
-            currentValues = new double[width];
             previousSeams = currentSeams;
+            currentValues = new double[pixels.size()];
             currentSeams = new ArrayList<>();
         }
 
         return previousSeams.get(getMinIndex(previousValues));
+    }
+
+
+    // Helper method to get the index of the minimum value in an array
+    private int getMinIndex(double[] array) {
+        int minIndex = 0;
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] < array[minIndex]) {
+                minIndex = i;
+            }
+        }
+        return minIndex;
     }
 
 
