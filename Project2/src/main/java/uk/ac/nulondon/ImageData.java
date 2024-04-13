@@ -1,12 +1,13 @@
 package uk.ac.nulondon;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ImageData {
@@ -64,25 +65,28 @@ public class ImageData {
      *             displayed to the user.
      */
     public void exportImage(String file) {
-        try{
+        if (pixels == null || pixels.isEmpty()) {
+            System.out.println("No pixel data available to export.");
+            return;
+        }
+        try {
             BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-            width = image.getWidth();
-            height = image.getHeight();
-
+            int index = 0;
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    int rgb = image.getRGB(x, y);
+                    Pixel pixel = pixels.get(index);
+                    int rgb = (pixel.getRed() << 16) | (pixel.getGreen() << 8) | pixel.getBlue();
                     image.setRGB(x, y, rgb);
+                    index++;
                 }
             }
-
             ImageIO.write(image, "png", new File(file));
             System.out.println("IMAGE EXPORTED SUCCESSFULLY");
         } catch (IOException e) {
-            System.out.println("IMAGE NOT FOUND " + e );
+            System.out.println("ERROR EXPORTING IMAGE: " + e);
         }
     }
+
 
     public void iterateEnergy() {
         if(pixels == null) {
@@ -151,28 +155,6 @@ public class ImageData {
         return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
     }
 
-    class Pair{
-        int row;
-        int col;
-        public Pair(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
-        public String toString() {return ("(%d, %d)".formatted(row, col));}
-    }
-
-    public double collectEnergy(Pixel p, int col){
-        Pixel iter = p;
-        for(int i=0; i<col--; i++){
-            if(p.getRight() != null)
-                 iter = iter.getRight();
-            else
-                return 0;
-        }
-
-        return  iter == null ? 0 : iter.getEnergy();
-    }
-
     public static <T> List<T> concat(T element, Collection<? extends T> elements) {
         List<T> result = new ArrayList<>();
         result.add(element);
@@ -180,74 +162,74 @@ public class ImageData {
         return result;
     }
 
+    public int getMinIndex(double[] arr){
+        double min = arr[0];
+        int index = 0;
+        for(int i = 1; i < arr.length; i++){
+            if(arr[i] < min){
+                min = arr[i];
+                index = i;
+            }
+        }
+        return index;
+    }
 
-        public List<Pair> getSeam() {
+
+    public List<Pixel> getSeam() {
+
+        if (pixels == null || pixels.isEmpty()) return new ArrayList<>();
         double[] previousValues = new double[width]; // the row above's values
         double[] currentValues = new double[width];  // current row's values
-        List<List<Pair>> previousSeams = new ArrayList<>(); // seam values from last iteration
-        List<List<Pair>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
-        Pair currentPixel = new Pair(0, 0);
-
+        List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
+        List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
         int col = 0;
+        Pixel p = pixels.getFirst();
+        Pixel currentPixel;
 
         // initializing for first row
-        while (col < width) {
-            previousValues[col] = collectEnergy(pixels.get(0), col);
+        while (col < pixels.get(0).getSizeLink()) {
+            previousValues[col] = p.getEnergy();
 
             // one seam per column
-            previousSeams.add(concat(currentPixel, List.of()));
+            previousSeams.add(concat(p, List.of()));
+            p = p.getRight();
             col++;
-            currentPixel = new Pair(currentPixel.row, currentPixel.col + 1);
         }
 
         // compute values and paths for each row
-        for (int row = 1; row < height; row++) {
-            col = 0;
-            currentPixel = new Pair(row, col);
-            while (col < width) {
-                double bestSoFar = previousValues[col];
-                int ref = col;
-                // check both adjacent pixels
-                // if left exists and is better, update
-                if (col > 0 && previousValues[col - 1] < bestSoFar) {
-                    bestSoFar = previousValues[col - 1];
-                    ref = col - 1;
+        for (int row = 1; row < pixels.size(); row++) {
+            currentPixel = pixels.get(row);
+            int index = 0;
+
+            while (currentPixel != null) {
+                double bestSoFar = previousValues[index];
+                int ref = index;
+                if (index > 0 && previousValues[index - 1] < bestSoFar) {
+                    bestSoFar = previousValues[index - 1];
+                    ref = index - 1;
                 }
-                // if right exists and is better, update
-                if (col < width - 1 && previousValues[col + 1] < bestSoFar) {
-                    bestSoFar = previousValues[col + 1];
-                    ref = col + 1;
+                if (index < pixels.size() - 1 && previousValues[index + 1] < bestSoFar) {
+                    bestSoFar = previousValues[index + 1];
+                    ref = index + 1;
                 }
 
-                // update the value with the current pixel
-                currentValues[col] = bestSoFar + collectEnergy(pixels.get(currentPixel.row), currentPixel.col);
+                currentValues[index] = bestSoFar + currentPixel.getEnergy();
 
                 // append this new pixel to existing seams
                 currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
 
-                col++;
+                index++;
                 // move to neighbor
-                currentPixel = new Pair(currentPixel.row, currentPixel.col + 1);
+                currentPixel = currentPixel.getRight();
             }
 
-            // update previous values/seams
-            // and reset current values/seams
             previousValues = currentValues;
             currentValues = new double[width];
             previousSeams = currentSeams;
             currentSeams = new ArrayList<>();
         }
 
-        // find the seam with the max sum
-        double minValue = previousValues[0];
-        int minIndex = 0;
-        for (int i = 1; i < 4; i++) {
-            if (previousValues[i] < minValue) {
-                minIndex = i;
-                minValue = previousValues[i];
-            }
-        }
-        return previousSeams.get(minIndex);
+        return previousSeams.get(getMinIndex(previousValues));
     }
 
 
@@ -260,14 +242,16 @@ public class ImageData {
 
         System.out.println(imageData.width);
 
+        imageData.exportImage("image/beach2.png");
+
 
 
 
         imageData.iterateEnergy();
 
 
-        List<Pair> seam = imageData.getSeam();
-        for (Pair pair : seam.reversed()) {
+        List<Pixel> seam = imageData.getSeam();
+        for (Pixel pair : seam.reversed()) {
             System.out.println(pair);
         }
 

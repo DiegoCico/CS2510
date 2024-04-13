@@ -39,6 +39,7 @@ public class Pixel {
      * @param green the green component to set
      * @param blue the blue component to set
      */
+    // Individual setters and getters for each color component
     public void setEnergy(double e){ energy = e; }
     public double getEnergy(){ return energy; }
     public void setPixel(int red, int green, int blue){
@@ -46,7 +47,6 @@ public class Pixel {
         g = green;
         b = blue;
     }
-    // Individual setters and getters for each color component
     public void setRed(int red){ r = red; }
     public void setGreen(int green) { g = green; }
     public void setBlue(int blue) { b = blue; }
@@ -57,4 +57,14 @@ public class Pixel {
     public int getBlue(){ return b; }
     public Pixel getLeft(){ return left; }
     public Pixel getRight(){ return right; }
+
+    public int getSizeLink(){
+        Pixel iter = this;
+        int counter = 0;
+        while(iter != null){
+            counter++;
+            iter = iter.getRight();
+        }
+        return counter;
+    }
 }
