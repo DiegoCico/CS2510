@@ -58,7 +58,7 @@ public class IntegerGraph {
      * @param value new value we're adding
      */
     public void addNode(int value) {
-        adjListMap.put(value, new LinkedList<>());
+        adjListMap.put(value, new ArrayList<>());
     }
 
     /**
@@ -70,6 +70,7 @@ public class IntegerGraph {
         return adjListMap.get(value);
     }
 
+
     /**
      * Determines if the given two nodes
      * share an edge.
@@ -80,6 +81,21 @@ public class IntegerGraph {
         return adjListMap.get(v1).contains(v2);
     }
 
+
+    public void deleteKey(int v1) {
+        // Remove the node itself
+        adjListMap.remove(v1);
+
+        for (int node : adjListMap.keySet()) {
+            adjListMap.get(node).remove(Integer.valueOf(v1));
+        }
+    }
+
+    public void deleteValue(int v1, int v2) {
+            adjListMap.get(v1).remove(Integer.valueOf(v2));
+        adjListMap.get(v2).remove(Integer.valueOf(v1));
+    }
+
     /**
      * Finds all the nodes that share edges
      * with both of the given values.
@@ -88,7 +104,21 @@ public class IntegerGraph {
      * @return list of integers that share edges with both v1 and v2
      */
     public List<Integer> mutualFriends(int v1, int v2) {
-        return adjListMap.get(v1).subList(v2, v1);
+        List<Integer> mutualFriends = new ArrayList<>();
+
+        // get both sets of neighbors
+        List<Integer> neighbors1 = adjListMap.get(v1);
+        List<Integer> neighbors2 = adjListMap.get(v2);
+
+        // iterate through neighbors of v1
+        for (int neighbor : neighbors1) {
+            // check neighbors of v2
+            if (neighbors2.contains(neighbor)) {
+                mutualFriends.add(neighbor);
+            }
+        }
+
+        return mutualFriends;
     }
 
     /**
@@ -98,8 +128,25 @@ public class IntegerGraph {
      * @return a list of integer pairs
      */
     public List<IntegerPair> getConnectedNeighbors(int value) {
-        //TODO: Your code here.
-        return new ArrayList<>();
+        List<IntegerPair> connectedNeighbors = new ArrayList<>();
+
+        // get neighbors for the given node
+        List<Integer> neighbors = adjListMap.get(value);
+
+        // iterate and check if neighbors are connected
+        for (int i = 0; i < neighbors.size(); i++) {
+            int neighbor1 = neighbors.get(i);
+            // this loop starts at i+1 to prevent duplicates
+            for (int j = i + 1; j < neighbors.size(); j++) {
+                int neighbor2 = neighbors.get(j);
+                if (isConnected(neighbor1, neighbor2)) {
+                    // normalize the pair to check for duplicates
+                    connectedNeighbors.add(new IntegerPair(neighbor1, neighbor2));
+                }
+            }
+        }
+
+        return connectedNeighbors;
     }
 
     /**
@@ -107,7 +154,7 @@ public class IntegerGraph {
      * of this graph
      */
     public void printGraph() {
-        for (int v = 0; v < nodeCount; v++) {
+        for (int v : adjListMap.keySet()) {
             System.out.print(v + ": ");
             for (Integer node : adjListMap.get(v)) {
                 System.out.print(node + " ");
@@ -115,6 +162,7 @@ public class IntegerGraph {
             System.out.println();
         }
     }
+
 
     public static void main(String[] args) {
         int V = 5;
@@ -130,16 +178,28 @@ public class IntegerGraph {
         // print the adjacency list representation of the above graph
         graph.printGraph();
 
-        // getMutualFriends
-        // should return [2, 4]
-        List<Integer> mutualFriends = graph.mutualFriends(1, 3);
-        System.out.println("Mutual Friends");
-        System.out.println(mutualFriends);
+        System.out.println("AHHHHHHHH1");
 
-        // getConnectedNeighbors
-        // should return (0, 4), (2, 3), (3, 4)
-        List<IntegerPair> friends = graph.getConnectedNeighbors(1);
-        System.out.println("Connected Neighbors");
-        System.out.println(friends);
+        graph.deleteKey(1);
+        graph.printGraph();
+
+        System.out.println("AHHHHHHHH");
+        graph.deleteValue(3,4);
+        graph.printGraph();
+
+//        // getMutualFriends
+//        // should return [2, 4]
+//        List<Integer> mutualFriends = graph.mutualFriends(1, 3);
+//        System.out.println("Mutual Friends of 1 and 3");
+//        System.out.println(mutualFriends);
+//
+//        // getConnectedNeighbors
+//        // should return (0, 4), (2, 3), (3, 4)
+//        List<IntegerPair> friends = graph.getConnectedNeighbors(1);
+//        System.out.println("Connected Neighbors of 1");
+//        System.out.println(friends);
+
+
+
     }
 }
