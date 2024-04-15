@@ -1,6 +1,7 @@
 package uk.ac.nulondon;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -158,71 +159,9 @@ public class ImageData {
         return result;
     }
 
-//    public List<Integer> getSeam() {
-//        double[] previousValues = new double[pixels.size()];
-//        double[] currentValues = new double[pixels.size()];
-//        List<List<Pixel>> previousSeams = new ArrayList<>();
-//        List<List<Pixel>> currentSeams = new ArrayList<>();
-//        Pixel pix = pixels.getFirst();
-//
-//        for (int index = 0; pix != null; index++) {
-//            previousValues[index] = pix.getEnergy();
-//            List<Pixel> initialSeam = new ArrayList<>();
-//            initialSeam.add(pix);
-//            previousSeams.add(initialSeam);
-//            pix = pix.getRight();
-//        }
-//
-//        // Process the rest of the rows
-//        for (int i = 1; i < pixels.size(); i++) {
-//            pix = pixels.get(i);
-//            //currentSeams.clear();
-//            for (int j = 0; pix != null; pix = pix.getRight(), j++) {
-//                double bestSoFar = previousValues[j];
-//                int bestIndex = j;
-//                if (j > 0 && previousValues[j - 1] < bestSoFar) {
-//                    bestSoFar = previousValues[j - 1];
-//                    bestIndex = j - 1;
-//                }
-//                if (j < pixels.size() - 1 && previousValues[j + 1] < bestSoFar) {
-//                    bestSoFar = previousValues[j + 1];
-//                    bestIndex = j + 1;
-//                }
-//
-//                currentValues[j] = bestSoFar + pix.getEnergy();
-////                System.out.println(previousSeams);
-//                System.out.println(previousValues);
-//                List<Pixel> newSeam = new ArrayList<>(previousSeams.get(bestIndex));
-//                newSeam.add(pix);
-//                currentSeams.add(newSeam);
-//            }
-////            previousValues = Arrays.copyOf(currentValues, currentValues.length);
-////            previousSeams = new ArrayList<>(currentSeams);
-//            previousValues = currentValues;
-//            previousSeams = currentSeams;
-//            currentValues = new double[pixels.size()];
-//            currentSeams = new ArrayList<>();
-//        }
-//
-//        double minEnergy = Double.MAX_VALUE;
-//        List<Pixel> minSeam = null;
-//        for (int j = 0; j < previousSeams.size(); j++) {
-//            if (previousValues[j] < minEnergy) {
-//                minEnergy = previousValues[j];
-//                minSeam = previousSeams.get(j);
-//            }
-//        }
-//
-//        List<Integer> seamIndices = new ArrayList<>();
-//        for (Pixel p : minSeam) {
-//            seamIndices.add(pixels.indexOf(p));
-//        }
-//        return seamIndices;
-//    }
-
 
     public List<Pixel> getSeam() {
-        int width = 8;
+        int width = pixels.size();
         if (pixels.isEmpty()) return new ArrayList<>();
 
         double[] previousValues = new double[width]; // the row above's values
@@ -287,6 +226,24 @@ public class ImageData {
         return minIndex;
     }
 
+    public Pixel getPixelRow(int r) { return pixels.get(r); }
+    public void setPixelRGB(int r, int g, int b) {
+
+    }
+
+    public int sumColBlue(int col){
+        int sum = 0;
+        for(int i = 0; i < pixels.size(); i++){
+            for(int j = 0; j < pixels.size(); j++){
+                int rgb = (pixels.get(i).getBlue();
+                sum += rgb;
+            }
+        }
+        return sum;
+    }
+
+    public ArrayList<Pixel> getPixels(){ return pixels; }
+
 
     public static void main(String[] args) {
         ImageData imageData = new ImageData();
@@ -297,12 +254,10 @@ public class ImageData {
 
         System.out.println(imageData.width);
 
-        imageData.exportImage("image/beach2.png");
-
         imageData.iterateEnergy();
 
         List<Pixel> seam = imageData.getSeam();
-        for (Pixel pair : seam.reversed()) {
+        for (Pixel pair : seam) {
             System.out.println(pair);
         }
 
