@@ -40,18 +40,15 @@ public class ImageData {
                     int b = rgb & 0xff;
                     Pixel currentPixel = new Pixel(r, g, b);
 
-                    if (x > 0) {
-                        Pixel leftPixel = pixels.get(pixels.size() - 1);
+                    if (x == 0) {
+                        pixels.add(currentPixel);
+                    } else {
                         previousPixel.setRight(currentPixel);
-                        currentPixel.setLeft(leftPixel);
+                        currentPixel.setLeft(previousPixel);
                     }
                     previousPixel = currentPixel;
-                    pixels.add(currentPixel);
                 }
-
-                previousPixel = null;
             }
-
         } catch (IOException e) {
             System.out.println("IMAGE NOT FOUND " + e);
         }
@@ -71,13 +68,12 @@ public class ImageData {
         }
         try {
             BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            int index = 0;
             for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    Pixel pixel = pixels.get(index);
-                    int rgb = (pixel.getRed() << 16) | (pixel.getGreen() << 8) | pixel.getBlue();
+                Pixel currentPixel = pixels.get(y);
+                for (int x = 0; currentPixel != null; x++) {
+                    int rgb = (currentPixel.getRed() << 16) | (currentPixel.getGreen() << 8) | currentPixel.getBlue();
                     image.setRGB(x, y, rgb);
-                    index++;
+                    currentPixel = currentPixel.getRight();
                 }
             }
             ImageIO.write(image, "png", new File(file));
@@ -162,114 +158,122 @@ public class ImageData {
         return result;
     }
 
-    public List<Integer> getSeam() {
-        double[] previousValues = new double[pixels.size()];
-        double[] currentValues = new double[pixels.size()];
-        List<List<Pixel>> previousSeams = new ArrayList<>();
-        List<List<Pixel>> currentSeams = new ArrayList<>();
-        Pixel pix = pixels.getFirst();
-
-        for (int index = 0; pix != null; pix = pix.getRight(), index++) {
-            previousValues[index] = pix.getEnergy();
-            List<Pixel> initialSeam = new ArrayList<>();
-            initialSeam.add(pix);
-            previousSeams.add(initialSeam);
-        }
-
-        // Process the rest of the rows
-        for (int i = 1; i < pixels.size(); i++) {
-            pix = pixels.get(i);
-            currentSeams.clear();
-            for (int j = 0; pix != null; pix = pix.getRight(), j++) {
-                double bestSoFar = previousValues[j];
-                int bestIndex = j;
-                if (j > 0 && previousValues[j - 1] < bestSoFar) {
-                    bestSoFar = previousValues[j - 1];
-                    bestIndex = j - 1;
-                }
-                if (j < pixels.size() - 1 && previousValues[j + 1] < bestSoFar) {
-                    bestSoFar = previousValues[j + 1];
-                    bestIndex = j + 1;
-                }
-
-                currentValues[j] = bestSoFar + pix.getEnergy();
-                List<Pixel> newSeam = new ArrayList<>(previousSeams.get(bestIndex));
-                newSeam.add(pix);
-                currentSeams.add(newSeam);
-            }
-            previousValues = Arrays.copyOf(currentValues, currentValues.length);
-            previousSeams = new ArrayList<>(currentSeams);
-        }
-
-        double minEnergy = Double.MAX_VALUE;
-        List<Pixel> minSeam = null;
-        for (int j = 0; j < previousSeams.size(); j++) {
-            if (previousValues[j] < minEnergy) {
-                minEnergy = previousValues[j];
-                minSeam = previousSeams.get(j);
-            }
-        }
-
-        List<Integer> seamIndices = new ArrayList<>();
-        for (Pixel p : minSeam) {
-            seamIndices.add(pixels.indexOf(p));
-        }
-        return seamIndices;
-    }
-
-
-//    public List<Pixel> getSeam() {
-//        if (pixels.isEmpty()) return new ArrayList<>();
+//    public List<Integer> getSeam() {
+//        double[] previousValues = new double[pixels.size()];
+//        double[] currentValues = new double[pixels.size()];
+//        List<List<Pixel>> previousSeams = new ArrayList<>();
+//        List<List<Pixel>> currentSeams = new ArrayList<>();
+//        Pixel pix = pixels.getFirst();
 //
-//        double[] previousValues = new double[pixels.size()]; // the row above's values
-//        double[] currentValues = new double[pixels.size()];  // current row's values
-//        List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
-//        List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
-//        int col = 0;
-//        Pixel p = pixels.getFirst();
-//        Pixel currentPixel;
-//
-//        // initializing for first row
-//        while (col < pixels.getFirst().getSizeLink()) {
-//            previousValues[col] = p.getEnergy();
-//            previousSeams.add(concat(p, List.of()));
-//            p = p.getRight();
-//            col++;
+//        for (int index = 0; pix != null; index++) {
+//            previousValues[index] = pix.getEnergy();
+//            List<Pixel> initialSeam = new ArrayList<>();
+//            initialSeam.add(pix);
+//            previousSeams.add(initialSeam);
+//            pix = pix.getRight();
 //        }
 //
-//        // compute values and paths for each row
-//        for (int row = 1; row < pixels.size(); row++) {
-//            currentPixel = pixels.get(row);
-//            int index = 0;
-//
-//            while (currentPixel != null) {
-//                double bestSoFar = previousValues[index];
-//                int ref = index;
-//                if (index > 0 && previousValues[index - 1] < bestSoFar) {
-//                    bestSoFar = previousValues[index - 1];
-//                    ref = index - 1;
+//        // Process the rest of the rows
+//        for (int i = 1; i < pixels.size(); i++) {
+//            pix = pixels.get(i);
+//            //currentSeams.clear();
+//            for (int j = 0; pix != null; pix = pix.getRight(), j++) {
+//                double bestSoFar = previousValues[j];
+//                int bestIndex = j;
+//                if (j > 0 && previousValues[j - 1] < bestSoFar) {
+//                    bestSoFar = previousValues[j - 1];
+//                    bestIndex = j - 1;
 //                }
-//                if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar) {
-//                    bestSoFar = previousValues[index + 1];
-//                    ref = index + 1;
+//                if (j < pixels.size() - 1 && previousValues[j + 1] < bestSoFar) {
+//                    bestSoFar = previousValues[j + 1];
+//                    bestIndex = j + 1;
 //                }
 //
-//
-//                currentValues[index] = bestSoFar + currentPixel.getEnergy();
-//                currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
-//                index++;
-//                currentPixel = currentPixel.getRight();
-//
+//                currentValues[j] = bestSoFar + pix.getEnergy();
+////                System.out.println(previousSeams);
+//                System.out.println(previousValues);
+//                List<Pixel> newSeam = new ArrayList<>(previousSeams.get(bestIndex));
+//                newSeam.add(pix);
+//                currentSeams.add(newSeam);
 //            }
-//
+////            previousValues = Arrays.copyOf(currentValues, currentValues.length);
+////            previousSeams = new ArrayList<>(currentSeams);
 //            previousValues = currentValues;
 //            previousSeams = currentSeams;
 //            currentValues = new double[pixels.size()];
 //            currentSeams = new ArrayList<>();
 //        }
 //
-//        return previousSeams.get(getMinIndex(previousValues));
+//        double minEnergy = Double.MAX_VALUE;
+//        List<Pixel> minSeam = null;
+//        for (int j = 0; j < previousSeams.size(); j++) {
+//            if (previousValues[j] < minEnergy) {
+//                minEnergy = previousValues[j];
+//                minSeam = previousSeams.get(j);
+//            }
+//        }
+//
+//        List<Integer> seamIndices = new ArrayList<>();
+//        for (Pixel p : minSeam) {
+//            seamIndices.add(pixels.indexOf(p));
+//        }
+//        return seamIndices;
 //    }
+
+
+    public List<Pixel> getSeam() {
+        int width = 8;
+        if (pixels.isEmpty()) return new ArrayList<>();
+
+        double[] previousValues = new double[width]; // the row above's values
+        double[] currentValues = new double[width];  // current row's values
+        List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
+        List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
+        int col = 0;
+        Pixel p = pixels.getFirst();
+        Pixel currentPixel;
+
+        // initializing for first row
+        while (col < width) {
+            previousValues[col] = p.getEnergy();
+            previousSeams.add(concat(p, List.of()));
+            p = p.getRight();
+            col++;
+        }
+
+        // compute values and paths for each row
+        for (int row = 1; row < width; row++) {
+            currentPixel = pixels.get(row);
+            int index = 0;
+
+            while (currentPixel != null) {
+                double bestSoFar = previousValues[index];
+                int ref = index;
+                if (index > 0 && previousValues[index - 1] < bestSoFar) {
+                    bestSoFar = previousValues[index - 1];
+                    ref = index - 1;
+                }
+                if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar) {
+                    bestSoFar = previousValues[index + 1];
+                    ref = index + 1;
+                }
+
+
+                currentValues[index] = bestSoFar + currentPixel.getEnergy();
+                currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
+                index++;
+                currentPixel = currentPixel.getRight();
+
+            }
+
+            previousValues = currentValues;
+            previousSeams = currentSeams;
+            currentValues = new double[pixels.size()];
+            currentSeams = new ArrayList<>();
+        }
+
+        return previousSeams.get(getMinIndex(previousValues));
+    }
 
 
     // Helper method to get the index of the minimum value in an array
@@ -297,8 +301,8 @@ public class ImageData {
 
         imageData.iterateEnergy();
 
-        List<Integer> seam = imageData.getSeam();
-        for (Integer pair : seam.reversed()) {
+        List<Pixel> seam = imageData.getSeam();
+        for (Pixel pair : seam.reversed()) {
             System.out.println(pair);
         }
 
