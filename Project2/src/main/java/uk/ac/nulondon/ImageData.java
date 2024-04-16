@@ -1,16 +1,15 @@
 package uk.ac.nulondon;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+
+// TODO KEEP TRACK OF SEAMS AND LOCATION
 public class ImageData {
     // variable to store width
     int width;
@@ -86,17 +85,17 @@ public class ImageData {
 
 
     public void iterateEnergy() {
-        if(pixels == null) {
+        if(pixels == null)
             return;
-        }
+
         for (Pixel pix : pixels) {
-            Pixel up = pixels.indexOf(pix) > 0 ? pixels.get(pixels.indexOf(pix) - 1) : null;
-            Pixel down = pixels.indexOf(pix) < pixels.size() - 1 ? pixels.get(pixels.indexOf(pix) + 1) : null;
+            Pixel up = (pixels.indexOf(pix) > 0) ? pixels.get(pixels.indexOf(pix) - 1) : pix;
+            Pixel down = (pixels.indexOf(pix) < pixels.size() - 1) ? pixels.get(pixels.indexOf(pix) + 1) : pix;
 
             while (pix != null) {
                 pix.setEnergy(calcEnergy(up, pix, down));
-                up = (up == null) ? null : up.getRight();
-                down = (down == null) ? null : down.getRight();
+                up = up.getRight();
+                down = down.getRight();
                 pix = pix.getRight();
             }
 
@@ -130,12 +129,6 @@ public class ImageData {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
 
-        if(up == null) {
-            up = middle;
-        }
-        if(down == null) {
-            down = middle;
-        }
 
         horizontal[0] = calculateBrightness(up.getLeft(),middle) + calculateBrightness(up,middle) * 2 + calculateBrightness(up.getRight(),middle);
         horizontal[1] = calculateBrightness(down.getLeft(),middle) + calculateBrightness(down,middle) * 2 + calculateBrightness(down.getRight(),middle);
@@ -147,7 +140,8 @@ public class ImageData {
         System.out.println(vertical[0]);
         System.out.print(horizontal[1] + " ");
         System.out.println(vertical[1]);
-        System.out.println((double) Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2)));
+        System.out.println(Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2)));
+        double total = Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
         System.out.println("----------------------------");
         return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
     }
@@ -159,10 +153,78 @@ public class ImageData {
         return result;
     }
 
+    public List<Pixel> getBlueSeam() {
+        int width = pixels.getFirst().getSizeLink();
+        if (pixels.isEmpty()) return new ArrayList<>();
+
+        double[] previousValues = new double[width]; // the row above's values
+        double[] currentValues = new double[width];  // current row's values
+        List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
+        List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
+        int col = 0;
+        Pixel p = pixels.getFirst();
+        Pixel currentPixel;
+
+        // initializing for first row
+        while (col < width) {
+            previousValues[col] = p.getBlue();
+            previousSeams.add(concat(p, List.of()));
+            p = p.getRight();
+            col++;
+        }
+
+        // compute values and paths for each row
+        for (int row = 1; row < width; row++) {
+            currentPixel = pixels.get(row);
+            int index = 0;
+
+            while (index < width) {
+                double bestSoFar = previousValues[index];
+                int ref = index;
+                if (index > 0 && previousValues[index - 1] > bestSoFar) {
+                    bestSoFar = previousValues[index - 1];
+                    ref = index - 1;
+                }
+                if (index < pixels.size() - 1  && previousValues[index + 1] > bestSoFar) {
+                    bestSoFar = previousValues[index + 1];
+                    ref = index + 1;
+                }
+
+
+                currentValues[index] = bestSoFar + currentPixel.getBlue();
+                currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
+                index++;
+                currentPixel = currentPixel.getRight();
+
+            }
+
+            previousValues = currentValues;
+            previousSeams = currentSeams;
+            currentValues = new double[pixels.size()];
+            currentSeams = new ArrayList<>();
+        }
+
+
+        return previousSeams.get(getMaxSeams(previousValues));
+    }
+
+    // Helper method to get the index of the minimum value in an array
+    private int getMaxSeams(double[] array) {
+        int minIndex = 0;
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] > array[minIndex]) {
+                minIndex = i;
+            }
+        }
+        return minIndex;
+    }
+
 
     public List<Pixel> getSeam() {
-        int width = pixels.size();
+        int width = pixels.getFirst().getSizeLink();
+        iterateEnergy();
         if (pixels.isEmpty()) return new ArrayList<>();
+
 
         double[] previousValues = new double[width]; // the row above's values
         double[] currentValues = new double[width];  // current row's values
@@ -185,7 +247,7 @@ public class ImageData {
             currentPixel = pixels.get(row);
             int index = 0;
 
-            while (currentPixel != null) {
+            while (index < width) {
                 double bestSoFar = previousValues[index];
                 int ref = index;
                 if (index > 0 && previousValues[index - 1] < bestSoFar) {
@@ -211,6 +273,7 @@ public class ImageData {
             currentSeams = new ArrayList<>();
         }
 
+
         return previousSeams.get(getMinIndex(previousValues));
     }
 
@@ -218,7 +281,7 @@ public class ImageData {
     // Helper method to get the index of the minimum value in an array
     private int getMinIndex(double[] array) {
         int minIndex = 0;
-        for (int i = 1; i < array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             if (array[i] < array[minIndex]) {
                 minIndex = i;
             }
@@ -226,23 +289,9 @@ public class ImageData {
         return minIndex;
     }
 
-    public Pixel getPixelRow(int r) { return pixels.get(r); }
-    public void setPixelRGB(int r, int g, int b) {
-
-    }
-
-    public int sumColBlue(int col){
-        int sum = 0;
-        for(int i = 0; i < pixels.size(); i++){
-            for(int j = 0; j < pixels.size(); j++){
-                int rgb = (pixels.get(i).getBlue();
-                sum += rgb;
-            }
-        }
-        return sum;
-    }
 
     public ArrayList<Pixel> getPixels(){ return pixels; }
+
 
 
     public static void main(String[] args) {
