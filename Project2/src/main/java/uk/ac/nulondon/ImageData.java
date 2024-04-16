@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-
-// TODO KEEP TRACK OF SEAMS AND LOCATION
 public class ImageData {
     // variable to store width
     int width;
@@ -79,7 +77,7 @@ public class ImageData {
             ImageIO.write(image, "png", new File(file));
             System.out.println("IMAGE EXPORTED SUCCESSFULLY");
         } catch (IOException e) {
-            System.out.println("ERROR EXPORTING IMAGE: " + e);
+            System.out.println("ERROR EXPORTING IMAGE: " + e.getMessage());
         }
     }
 
@@ -126,7 +124,6 @@ public class ImageData {
      * @return the energy of the middle pixel
      */
 
-    //TODO: DO THE OPPOSITE PLEASE AND THANK YOU :)
     public double calcEnergy(Pixel up, Pixel middle, Pixel down) {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};

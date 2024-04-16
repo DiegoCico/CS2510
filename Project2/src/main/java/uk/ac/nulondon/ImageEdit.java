@@ -44,43 +44,15 @@ public class ImageEdit {
     }
 
 
-//    public void deleteColumn(List<Pixel> pixels) {
-//        for(int i =0; i < imageData.height; i++){
-//            Pixel iter = imageData.getPixels().get(i);
-//            while(iter != null){
-//
-//                if(pixels.get(i) == iter){
-//                    System.out.println("HOWDY");
-//                   pixels.get(i).setLeft(pixels.get(i).getRight());
-//                   pixels.get(i).setRight(pixels.get(i).getLeft());
-//                   System.out.println(iter.getSizeLink());
-//                   break;
-//                } else {
-//                    iter = iter.getRight();
-//                }
-//            }
-//        }
-//    }
-
-    public void deleteColumn(List<Pixel> pixels) {
-        for(int i = 0; i < imageData.height; i++){
-            Pixel target = pixels.get(i);  // The pixel in the current row that needs to be removed
-            Pixel iter = imageData.getPixels().get(i);  // Starting pixel of the current row
-
-            if (iter == target) {
-                System.out.println("HOWDY");
-                // If the first pixel in the row is the target, update the start of the row
-                imageData.getPixels().set(i, iter.getRight());
-            } else {
-                // Traverse the linked list to find the pixel before the target
-                while (iter != null && iter.getRight() != target) {
-                    iter = iter.getRight();
+    public void deleteColumn(List<Pixel> pixelsToRemove) {
+        for (Pixel pixel : pixelsToRemove) {
+                if (pixel.getLeft() != null) {
+                    pixel.getLeft().setRight(pixel.getRight());
                 }
-                if (iter != null && iter.getRight() == target) {
-                    // Bypass the target pixel
-                    iter.setRight(target.getRight());
+                if (pixel.getRight() != null) {
+                    pixel.getRight().setLeft(pixel.getLeft());
                 }
-            }
+
         }
     }
 
@@ -96,13 +68,16 @@ public class ImageEdit {
 
 
 
-        imageEdit.highlightColumn("blue");
+        imageEdit.highlightColumn("no");
 
         imageEdit.imageData.exportImage("image/beach2.png");
 
+        imageEdit.deleteColumn(imageEdit.highlightRed());
+        imageEdit.imageData.exportImage("image/beach3.png");
+
         System.out.println(imageEdit.editCount());
 
-//        imageEdit.undo();
+        imageEdit.undo();
 
 
     }
