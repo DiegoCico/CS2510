@@ -125,6 +125,8 @@ public class ImageData {
      * @param down this is the pixel below the pixel to be calculated
      * @return the energy of the middle pixel
      */
+
+    //TODO: DO THE OPPOSITE PLEASE AND THANK YOU :)
     public double calcEnergy(Pixel up, Pixel middle, Pixel down) {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
@@ -136,13 +138,8 @@ public class ImageData {
         vertical[0] = calculateBrightness(up.getLeft(),middle) + calculateBrightness(middle.getLeft(),middle) * 2 + calculateBrightness(down.getLeft(),middle);
         vertical[1] = calculateBrightness(up.getRight(),middle) + calculateBrightness(middle.getRight(),middle) * 2 + calculateBrightness(down.getRight(),middle);
 
-        System.out.print(horizontal[0] + " ");
-        System.out.println(vertical[0]);
-        System.out.print(horizontal[1] + " ");
-        System.out.println(vertical[1]);
-        System.out.println(Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2)));
+
         double total = Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
-        System.out.println("----------------------------");
         return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
     }
 
@@ -153,79 +150,12 @@ public class ImageData {
         return result;
     }
 
-    public List<Pixel> getBlueSeam() {
-        int width = pixels.getFirst().getSizeLink();
-        if (pixels.isEmpty()) return new ArrayList<>();
 
-        double[] previousValues = new double[width]; // the row above's values
-        double[] currentValues = new double[width];  // current row's values
-        List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
-        List<List<Pixel>> currentSeams = new ArrayList<>(); // seam values with this row's iteration
-        int col = 0;
-        Pixel p = pixels.getFirst();
-        Pixel currentPixel;
-
-        // initializing for first row
-        while (col < width) {
-            previousValues[col] = p.getBlue();
-            previousSeams.add(concat(p, List.of()));
-            p = p.getRight();
-            col++;
-        }
-
-        // compute values and paths for each row
-        for (int row = 1; row < width; row++) {
-            currentPixel = pixels.get(row);
-            int index = 0;
-
-            while (index < width) {
-                double bestSoFar = previousValues[index];
-                int ref = index;
-                if (index > 0 && previousValues[index - 1] > bestSoFar) {
-                    bestSoFar = previousValues[index - 1];
-                    ref = index - 1;
-                }
-                if (index < pixels.size() - 1  && previousValues[index + 1] > bestSoFar) {
-                    bestSoFar = previousValues[index + 1];
-                    ref = index + 1;
-                }
-
-
-                currentValues[index] = bestSoFar + currentPixel.getBlue();
-                currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
-                index++;
-                currentPixel = currentPixel.getRight();
-
-            }
-
-            previousValues = currentValues;
-            previousSeams = currentSeams;
-            currentValues = new double[pixels.size()];
-            currentSeams = new ArrayList<>();
-        }
-
-
-        return previousSeams.get(getMaxSeams(previousValues));
-    }
-
-    // Helper method to get the index of the minimum value in an array
-    private int getMaxSeams(double[] array) {
-        int minIndex = 0;
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] > array[minIndex]) {
-                minIndex = i;
-            }
-        }
-        return minIndex;
-    }
-
-
-    public List<Pixel> getSeam() {
+    public List<Pixel> getSeam(boolean isBlue) {
         int width = pixels.getFirst().getSizeLink();
         iterateEnergy();
         if (pixels.isEmpty()) return new ArrayList<>();
 
-
         double[] previousValues = new double[width]; // the row above's values
         double[] currentValues = new double[width];  // current row's values
         List<List<Pixel>> previousSeams = new ArrayList<>(); // seam values from last iteration
@@ -236,7 +166,7 @@ public class ImageData {
 
         // initializing for first row
         while (col < width) {
-            previousValues[col] = p.getEnergy();
+            previousValues[col] = isBlue ? p.getBlue() : p.getEnergy();
             previousSeams.add(concat(p, List.of()));
             p = p.getRight();
             col++;
@@ -250,17 +180,23 @@ public class ImageData {
             while (index < width) {
                 double bestSoFar = previousValues[index];
                 int ref = index;
-                if (index > 0 && previousValues[index - 1] < bestSoFar) {
+                if (index > 0 && previousValues[index - 1] > bestSoFar && isBlue) {
+                    bestSoFar = previousValues[index - 1];
+                    ref = index - 1;
+                } else if (index > 0 && previousValues[index - 1] < bestSoFar && !isBlue) {
                     bestSoFar = previousValues[index - 1];
                     ref = index - 1;
                 }
-                if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar) {
+                if (index < pixels.size() - 1  && previousValues[index + 1] > bestSoFar && isBlue) {
+                    bestSoFar = previousValues[index + 1];
+                    ref = index + 1;
+                } else if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar && !isBlue) {
                     bestSoFar = previousValues[index + 1];
                     ref = index + 1;
                 }
 
 
-                currentValues[index] = bestSoFar + currentPixel.getEnergy();
+                currentValues[index] = bestSoFar + (isBlue ? currentPixel.getBlue() : currentPixel.getEnergy());
                 currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
                 index++;
                 currentPixel = currentPixel.getRight();
@@ -274,19 +210,19 @@ public class ImageData {
         }
 
 
-        return previousSeams.get(getMinIndex(previousValues));
+        return previousSeams.get(getMaxOrMinIndex(previousValues, isBlue));
     }
 
-
-    // Helper method to get the index of the minimum value in an array
-    private int getMinIndex(double[] array) {
-        int minIndex = 0;
+        private int getMaxOrMinIndex(double[] array, boolean isBlue) {
+        int maxIndex = 0;
         for (int i = 0; i < array.length; i++) {
-            if (array[i] < array[minIndex]) {
-                minIndex = i;
+            if (isBlue) {
+                if (array[i] > array[maxIndex]) { maxIndex = i; }
+            } else {
+                if (array[i] < array[maxIndex]) maxIndex = i;
             }
         }
-        return minIndex;
+        return maxIndex;
     }
 
 
@@ -294,23 +230,5 @@ public class ImageData {
 
 
 
-    public static void main(String[] args) {
-        ImageData imageData = new ImageData();
-
-        System.out.println(imageData.width);
-
-        imageData.importImage("image/beach.png");
-
-        System.out.println(imageData.width);
-
-        imageData.iterateEnergy();
-
-        List<Pixel> seam = imageData.getSeam();
-        for (Pixel pair : seam) {
-            System.out.println(pair);
-        }
-
-
     }
 
-}
