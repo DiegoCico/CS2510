@@ -210,7 +210,7 @@ public class ImageData {
         return previousSeams.get(getMaxOrMinIndex(previousValues, isBlue));
     }
 
-        private int getMaxOrMinIndex(double[] array, boolean isBlue) {
+        public int getMaxOrMinIndex(double[] array, boolean isBlue) {
         int maxIndex = 0;
         for (int i = 0; i < array.length; i++) {
             if (isBlue) {
@@ -221,6 +221,33 @@ public class ImageData {
         }
         return maxIndex;
     }
+
+    public void setupPixelDataForSeamTest(ImageData imageData, int width, int height, boolean isBlue) {
+        imageData.width = width;
+        imageData.height = height;
+        imageData.pixels = new ArrayList<>();
+
+        for (int y = 0; y < height; y++) {
+            Pixel previousPixel = null;
+            for (int x = 0; x < width; x++) {
+                int blue = (x == width / 2) ? 255 : 0;
+                double energy = (x == width / 2) ? 1.0 : 100.0;
+                Pixel currentPixel = new Pixel(0, 0, blue);
+                currentPixel.setEnergy(energy);
+
+                if (previousPixel != null) {
+                    previousPixel.setRight(currentPixel);
+                    currentPixel.setLeft(previousPixel);
+                }
+
+                if (y == 0) {
+                    imageData.pixels.add(currentPixel);
+                }
+                previousPixel = currentPixel;
+            }
+        }
+    }
+
 
 
     public ArrayList<Pixel> getPixels(){ return pixels; }
