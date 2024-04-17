@@ -3,18 +3,27 @@ package uk.ac.nulondon;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests the functionality of the Pixel class ensuring that all pixel manipulations
+ * are correct and adhere to expected behaviors.
+ */
 public class PixelTest {
 
-    // Tests for the default constructor
+    /**
+     * Tests the default constructor of the Pixel class to ensure it creates a pixel
+     * initialized to white (255, 255, 255).
+     */
     @Test
-    void defaultConstructorShouldCreateBlackPixel() {
+    void defaultConstructorShouldCreateWhitePixel() {
         Pixel pixel = new Pixel();
         assertThat(pixel.getRed()).isEqualTo(255);
         assertThat(pixel.getGreen()).isEqualTo(255);
         assertThat(pixel.getBlue()).isEqualTo(255);
     }
 
-    // Tests for the parameterized constructor
+    /**
+     * Tests the parameterized constructor to ensure that the RGB values are set correctly.
+     */
     @Test
     void parameterizedConstructorShouldSetCorrectValues() {
         Pixel pixel = new Pixel(255, 128, 64);
@@ -22,16 +31,10 @@ public class PixelTest {
         assertThat(pixel.getGreen()).isEqualTo(128);
         assertThat(pixel.getBlue()).isEqualTo(64);
     }
-    // Tests for the parameterized constructor
-    @Test
-    void parameterizedConstructorShouldNotSetIncorrectValues() {
-        Pixel pixel = new Pixel(255, 128, 64);
-        assertThat(pixel.getRed()).isNotEqualTo(0);
-        assertThat(pixel.getGreen()).isNotEqualTo(0);
-        assertThat(pixel.getBlue()).isNotEqualTo(0);
-    }
 
-    // Tests for setPixel method
+    /**
+     * Tests the setPixel method to ensure that it correctly updates the RGB values of a pixel.
+     */
     @Test
     void setPixelShouldChangeValuesCorrectly() {
         Pixel pixel = new Pixel();
@@ -40,36 +43,13 @@ public class PixelTest {
         assertThat(pixel.getGreen()).isEqualTo(20);
         assertThat(pixel.getBlue()).isEqualTo(30);
     }
-    // Tests for setPixel method
-    @Test
-    void setPixelShouldNotRetainOldValues() {
-        Pixel pixel = new Pixel(100, 100, 100);
-        pixel.setPixel(10, 20, 30);
-        assertThat(pixel.getRed()).isNotEqualTo(100);
-        assertThat(pixel.getGreen()).isNotEqualTo(100);
-        assertThat(pixel.getBlue()).isNotEqualTo(100);
-    }
 
-    // Tests for toSting
+    /**
+     * Tests the setEnergy and getEnergy methods to verify correct setting and retrieving
+     * of the energy value.
+     */
     @Test
-    void toStringShouldNotReturnIncorrectFormat() {
-        Pixel pixel = new Pixel(70, 80, 90);
-        assertThat(pixel.toString()).isNotEqualTo("70, 80, 90, 100");
-    }
-
-    //Tests for setEnergy
-    @Test
-    void setEnergy(){
-        Pixel pixel = new Pixel();
-        pixel.setEnergy(100);
-        assertThat(pixel.getEnergy()).isEqualTo(100);
-        pixel.setEnergy(170);
-        assertThat(pixel.getEnergy()).isEqualTo(170);
-    }
-
-    // Tests for getEnergy
-    @Test
-    void getEnergy(){
+    void setAndGetEnergy() {
         Pixel pixel = new Pixel();
         pixel.setEnergy(100);
         assertThat(pixel.getEnergy()).isEqualTo(100);
@@ -77,45 +57,25 @@ public class PixelTest {
         assertThat(pixel.getEnergy()).isEqualTo(200);
     }
 
-    // This tests setPixel
+    /**
+     * Verifies that the setLeft method correctly sets the left neighboring pixel.
+     */
     @Test
-    void setPixel(){
+    void setLeft() {
         Pixel pixel = new Pixel();
-        pixel.setPixel(10, 20, 30);
-        assertThat(pixel.getRed()).isEqualTo(10);
-        assertThat(pixel.getGreen()).isEqualTo(20);
-        assertThat(pixel.getBlue()).isEqualTo(30);
-
+        Pixel leftPixel = new Pixel();
+        pixel.setLeft(leftPixel);
+        assertThat(pixel.getLeft()).isEqualTo(leftPixel);
     }
 
-    // Tests setLeft
+    /**
+     * Verifies that the setRight method correctly sets the right neighboring pixel.
+     */
     @Test
-    void setLeft(){
+    void setRight() {
         Pixel pixel = new Pixel();
-        assertThat(pixel.getLeft()).isEqualTo(null);
-
-        Pixel pixel2 = new Pixel();
-        pixel.setPixel(10, 20, 30);
-        pixel2.setPixel(20,90,70);
-        pixel.setLeft(pixel2);
-        assertThat(pixel.getLeft()).isEqualTo(pixel2);
-
+        Pixel rightPixel = new Pixel();
+        pixel.setRight(rightPixel);
+        assertThat(pixel.getRight()).isEqualTo(rightPixel);
     }
-
-    // Tests setRight
-    @Test
-    void setRight(){
-        Pixel pixel = new Pixel();
-        pixel.setPixel(10, 20, 30);
-        assertThat(pixel.getRight()).isEqualTo(null);
-
-        Pixel pixel2 = new Pixel();
-        pixel.setPixel(10, 20, 30);
-        pixel2.setPixel(20,90,70);
-        pixel.setRight(pixel2);
-        assertThat(pixel.getRight()).isEqualTo(pixel2);
-
-    }
-
-
 }

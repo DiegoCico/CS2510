@@ -87,7 +87,6 @@ public class ImageEdit {
                 count--;
             }
         }
-        //TODO: ASK ABOUT EXCEPTION
         catch (Exception e) {
            System.out.println("No more deletes left");
         }

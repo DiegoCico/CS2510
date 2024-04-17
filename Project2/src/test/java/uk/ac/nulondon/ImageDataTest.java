@@ -6,9 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * This class tests various functionalities of the ImageData class,
+ * focusing on the correctness of pixel manipulations and utility methods.
+ */
 public class ImageDataTest {
 
-    // BRIGTNESS
+    /**
+     * Tests the calculateBrightness method with a valid Pixel.
+     * Ensures the method correctly calculates the average RGB values.
+     */
     @Test
     public void testCalculateBrightnessWithValidPixel() {
         ImageData imageData = new ImageData();
@@ -17,6 +24,10 @@ public class ImageDataTest {
         assertThat(brightness).isEqualTo((10 + 20 + 30) / 3);
     }
 
+    /**
+     * Tests the calculateBrightness method with a null Pixel.
+     * Ensures the method uses the backup Pixel when the main Pixel is null.
+     */
     @Test
     public void testCalculateBrightnessWithNullPixel() {
         ImageData imageData = new ImageData();
@@ -25,7 +36,10 @@ public class ImageDataTest {
         assertThat(brightness).isEqualTo((10 + 20 + 30) / 3);
     }
 
-    // ENERGY
+    /**
+     * Tests the calcEnergy method with typical Pixel values.
+     * Verifies that the energy calculation correctly handles RGB differences.
+     */
     @Test
     public void testCalcEnergyWithTypicalPixels() {
         ImageData imageData = new ImageData();
@@ -36,7 +50,10 @@ public class ImageDataTest {
         assertThat(energy).isEqualTo(0);
     }
 
-    // CONCAT
+    /**
+     * Tests the concat method with a non-empty collection of Pixels.
+     * Verifies that Pixels are added correctly to the collection.
+     */
     @Test
     public void testConcatWithNonEmptyCollection() {
         ImageData imageData = new ImageData();
@@ -46,6 +63,10 @@ public class ImageDataTest {
         assertThat(result.get(1).getRed()).isEqualTo(1);
     }
 
+    /**
+     * Tests the concat method with an empty collection of Pixels.
+     * Verifies that a single Pixel can be added to an empty collection.
+     */
     @Test
     public void testConcatWithEmptyCollection() {
         ImageData imageData = new ImageData();
@@ -53,7 +74,9 @@ public class ImageDataTest {
         assertThat(result.get(0)).extracting(Pixel::getRed, Pixel::getGreen, Pixel::getBlue).contains(7, 8, 9);
     }
 
-    //MAX OR MIN
+    /**
+     * Tests getMaxOrMinIndex method to find the maximum value index in an array.
+     */
     @Test
     public void testGetMaxOrMinIndexForMaxValue() {
         ImageData imageData = new ImageData();
@@ -62,6 +85,9 @@ public class ImageDataTest {
         assertThat(index).isEqualTo(3);
     }
 
+    /**
+     * Tests getMaxOrMinIndex method to find the minimum value index in an array.
+     */
     @Test
     public void testGetMaxOrMinIndexForMinValue() {
         ImageData imageData = new ImageData();
@@ -70,6 +96,10 @@ public class ImageDataTest {
         assertThat(index).isEqualTo(2);
     }
 
+    /**
+     * Tests getMaxOrMinIndex method with identical values in the array.
+     * Verifies that the first index is returned for both max and min searches.
+     */
     @Test
     public void testGetMaxOrMinIndexWithIdenticalValues() {
         ImageData imageData = new ImageData();
@@ -80,8 +110,10 @@ public class ImageDataTest {
         assertThat(minIndex).isEqualTo(0);
     }
 
-
-    // SEAM
+    /**
+     * Tests the getSeam method optimizing for the maximum blue value.
+     * Ensures the method selects the seam with the highest blue values across a set pixel configuration.
+     */
     @Test
     public void testGetSeamOptimizingForBlue() {
         ImageData imageData = new ImageData();
@@ -92,6 +124,10 @@ public class ImageDataTest {
         assertThat(seam.stream().allMatch(p -> p.getBlue() == 255)).isTrue();
     }
 
+    /**
+     * Tests the getSeam method optimizing for the lowest energy value.
+     * Ensures the method selects the seam with the lowest energy values across a set pixel configuration.
+     */
     @Test
     public void testGetSeamOptimizingForEnergy() {
         ImageData imageData = new ImageData();
@@ -101,7 +137,4 @@ public class ImageDataTest {
         assertThat(seam).hasSize(3);
         assertThat(seam.stream().allMatch(p -> p.getEnergy() == 1.0)).isTrue();
     }
-
-
-
 }

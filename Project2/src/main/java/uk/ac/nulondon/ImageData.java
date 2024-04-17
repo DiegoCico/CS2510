@@ -181,6 +181,7 @@ public class ImageData {
             while (index < anotherWidth) {
                 double bestSoFar = previousValues[index];
                 int ref = index;
+
                 if (index > 0 && previousValues[index - 1] > bestSoFar && isBlue) {
                     bestSoFar = previousValues[index - 1];
                     ref = index - 1;
@@ -195,6 +196,7 @@ public class ImageData {
                     bestSoFar = previousValues[index + 1];
                     ref = index + 1;
                 }
+
                 currentValues[index] = bestSoFar + (isBlue ? currentPixel.getBlue() : currentPixel.getEnergy());
                 currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
                 index++;
@@ -259,7 +261,7 @@ public class ImageData {
     /**
      * @return this will return an ArrayList of pixels
      */
-    public ArrayList<Pixel> getPixels(){ return pixels; }
+    public List<Pixel> getPixels(){ return pixels; }
 
 
     }
