@@ -13,6 +13,20 @@ public class Pixel {
     private double energy;
 
     /**
+     * This is a constructor to store un-highlighted versions of the seam to be deleted
+     * @param p
+     */
+    public Pixel(Pixel p){
+        this.r = p.r;
+        this.g = p.g;
+        this.b = p.b;
+        this.energy = p.energy;
+        this.left = p.left;
+        this.right = p.right;
+
+    }
+
+    /**
      * Default constructor that creates a black pixel (all values set to 0).
      */
     public Pixel(){
@@ -32,14 +46,8 @@ public class Pixel {
         setPixel(red, green, blue);
     }
 
-    /**
-     * Sets the pixel's color values.
-     *
-     * @param red the red component to set
-     * @param green the green component to set
-     * @param blue the blue component to set
-     */
-    // Individual setters and getters for each color component
+
+    // Individual setters and getters for each color, energy, and reference components
     public void setEnergy(double e){ energy = e; }
     public double getEnergy(){ return energy; }
     public void setPixel(int red, int green, int blue){
@@ -57,7 +65,6 @@ public class Pixel {
     public int getBlue(){ return b; }
     public Pixel getLeft(){ return left; }
     public Pixel getRight(){ return right; }
-
     public int getSizeLink(){
         Pixel iter = this;
         int counter = 0;

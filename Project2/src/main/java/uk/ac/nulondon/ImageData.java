@@ -9,10 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class ImageData {
-    // variable to store width
-    int width;
-    // variable to store height
-    int height;
+    // ArrayList of pixels to be used to store seams to delete
     ArrayList<Pixel> pixels = new ArrayList<>();
 
     /**
@@ -20,13 +17,13 @@ public class ImageData {
      *             based on a LinkedList of Lists of Integers. It will throw an exception if
      *             the filepath does not exist.
      */
-    public void importImage(String file) {
-        try {
+    public void importImage(String file) throws IOException {
+
             System.out.println("Importing " + file);
             BufferedImage image = ImageIO.read(new File(file));
 
-            width = image.getWidth();
-            height = image.getHeight();
+            int width = image.getWidth();
+            int height = image.getHeight();
             pixels = new ArrayList<>();
             Pixel previousPixel = null;
 
@@ -46,13 +43,10 @@ public class ImageData {
                     }
                     previousPixel = currentPixel;
                 }
-            }
-        } catch (IOException e) {
-            System.out.println("IMAGE NOT FOUND " + e);
+
         }
 
     }
-
 
     /**
      * @param file this is the filepath where the altered image will be stored at.
@@ -65,40 +59,38 @@ public class ImageData {
             return;
         }
         try {
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            for (int y = 0; y < height; y++) {
+            BufferedImage image = new BufferedImage(pixels.getFirst().getSizeLink(), pixels.size(), BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < pixels.size(); y++) {
                 Pixel currentPixel = pixels.get(y);
-                for (int x = 0; currentPixel != null; x++) {
+                for (int x = 0; x < pixels.getFirst().getSizeLink(); x++) {
                     int rgb = (currentPixel.getRed() << 16) | (currentPixel.getGreen() << 8) | currentPixel.getBlue();
                     image.setRGB(x, y, rgb);
                     currentPixel = currentPixel.getRight();
                 }
             }
             ImageIO.write(image, "png", new File(file));
-            System.out.println("IMAGE EXPORTED SUCCESSFULLY");
         } catch (IOException e) {
             System.out.println("ERROR EXPORTING IMAGE: " + e.getMessage());
         }
     }
 
-
+    /**
+     * This method will go through each pixel in an image and calculate each pixel's energy
+     */
     public void iterateEnergy() {
         if(pixels == null)
             return;
-
         for (Pixel pix : pixels) {
             Pixel up = (pixels.indexOf(pix) > 0) ? pixels.get(pixels.indexOf(pix) - 1) : pix;
             Pixel down = (pixels.indexOf(pix) < pixels.size() - 1) ? pixels.get(pixels.indexOf(pix) + 1) : pix;
 
-            while (pix != null) {
+            while (pix.getRight() != null) {
                 pix.setEnergy(calcEnergy(up, pix, down));
                 up = up.getRight();
                 down = down.getRight();
                 pix = pix.getRight();
             }
-
         }
-
     }
 
     /**
@@ -106,7 +98,6 @@ public class ImageData {
      * @param pixel given pixel to calculate brightness
      * @return the brightness of that given pixel
      */
-
     public int calculateBrightness(Pixel pixel, Pixel backup){
         if(pixel == null) {
             int sum = backup.getGreen() + backup.getBlue() +  backup.getRed();
@@ -123,11 +114,14 @@ public class ImageData {
      * @param down this is the pixel below the pixel to be calculated
      * @return the energy of the middle pixel
      */
-
     public double calcEnergy(Pixel up, Pixel middle, Pixel down) {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
 
+//        if(up == null)
+//            up = middle;
+//        if(down == null)
+//            down = middle;
 
         horizontal[0] = calculateBrightness(up.getLeft(),middle) + calculateBrightness(up,middle) * 2 + calculateBrightness(up.getRight(),middle);
         horizontal[1] = calculateBrightness(down.getLeft(),middle) + calculateBrightness(down,middle) * 2 + calculateBrightness(down.getRight(),middle);
@@ -135,11 +129,16 @@ public class ImageData {
         vertical[0] = calculateBrightness(up.getLeft(),middle) + calculateBrightness(middle.getLeft(),middle) * 2 + calculateBrightness(down.getLeft(),middle);
         vertical[1] = calculateBrightness(up.getRight(),middle) + calculateBrightness(middle.getRight(),middle) * 2 + calculateBrightness(down.getRight(),middle);
 
-
-        double total = Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
         return Math.sqrt(Math.pow((horizontal[1] - horizontal[0]), 2) + Math.pow((vertical[1] - vertical[0]), 2));
     }
 
+    /**
+     * This will add an element to a collection
+     * @param element main element to be added
+     * @param elements the collection to store the element
+     * @return returns the  new collection
+     * @param <T> Allows for a collection of any type T
+     */
     public static <T> List<T> concat(T element, Collection<? extends T> elements) {
         List<T> result = new ArrayList<>();
         result.add(element);
@@ -147,7 +146,11 @@ public class ImageData {
         return result;
     }
 
-
+    /**
+     * This will calculate the energies of each pixel then find the seam based on a parameter
+     * @param isBlue this will provide instructions for if the lowest energy seam or bluest seam is found
+     * @return returns a list of seams to be deleted
+     */
     public List<Pixel> getSeam(boolean isBlue) {
         int width = pixels.getFirst().getSizeLink();
         iterateEnergy();
@@ -162,19 +165,20 @@ public class ImageData {
         Pixel currentPixel;
 
         // initializing for first row
-        while (col < width) {
+        while (col < pixels.getFirst().getSizeLink()) {
             previousValues[col] = isBlue ? p.getBlue() : p.getEnergy();
             previousSeams.add(concat(p, List.of()));
             p = p.getRight();
             col++;
         }
 
+        int anotherWidth = pixels.getFirst().getSizeLink();
         // compute values and paths for each row
-        for (int row = 1; row < width; row++) {
+        for (int row = 1; row < pixels.size(); row++) {
             currentPixel = pixels.get(row);
             int index = 0;
 
-            while (index < width) {
+            while (index < anotherWidth) {
                 double bestSoFar = previousValues[index];
                 int ref = index;
                 if (index > 0 && previousValues[index - 1] > bestSoFar && isBlue) {
@@ -184,32 +188,33 @@ public class ImageData {
                     bestSoFar = previousValues[index - 1];
                     ref = index - 1;
                 }
-                if (index < pixels.size() - 1  && previousValues[index + 1] > bestSoFar && isBlue) {
+                if (index < anotherWidth - 1  && previousValues[index + 1] > bestSoFar && isBlue) {
                     bestSoFar = previousValues[index + 1];
                     ref = index + 1;
-                } else if (index < pixels.size() - 1  && previousValues[index + 1] < bestSoFar && !isBlue) {
+                } else if (index < anotherWidth - 1  && previousValues[index + 1] < bestSoFar && !isBlue) {
                     bestSoFar = previousValues[index + 1];
                     ref = index + 1;
                 }
-
-
                 currentValues[index] = bestSoFar + (isBlue ? currentPixel.getBlue() : currentPixel.getEnergy());
                 currentSeams.add(concat(currentPixel, previousSeams.get(ref)));
                 index++;
                 currentPixel = currentPixel.getRight();
-
             }
-
             previousValues = currentValues;
             previousSeams = currentSeams;
-            currentValues = new double[pixels.size()];
+            currentValues = new double[anotherWidth];
             currentSeams = new ArrayList<>();
         }
-
 
         return previousSeams.get(getMaxOrMinIndex(previousValues, isBlue));
     }
 
+    /**
+     * This will get the index of the pixels in a seam to delete
+     * @param array the seam
+     * @param isBlue if it is lowest-energy or greatest-blue
+     * @return the index of the lowest/highest value in a row
+     */
         public int getMaxOrMinIndex(double[] array, boolean isBlue) {
         int maxIndex = 0;
         for (int i = 0; i < array.length; i++) {
@@ -222,9 +227,14 @@ public class ImageData {
         return maxIndex;
     }
 
+    /**
+     * This will be used for testing purposes
+     * @param imageData example of imageData to test
+     * @param width example of width for imageData
+     * @param height example of height for imageData
+     * @param isBlue example if the lowest-energy or bluest seam is to be found
+     */
     public void setupPixelDataForSeamTest(ImageData imageData, int width, int height, boolean isBlue) {
-        imageData.width = width;
-        imageData.height = height;
         imageData.pixels = new ArrayList<>();
 
         for (int y = 0; y < height; y++) {
@@ -234,12 +244,10 @@ public class ImageData {
                 double energy = (x == width / 2) ? 1.0 : 100.0;
                 Pixel currentPixel = new Pixel(0, 0, blue);
                 currentPixel.setEnergy(energy);
-
                 if (previousPixel != null) {
                     previousPixel.setRight(currentPixel);
                     currentPixel.setLeft(previousPixel);
                 }
-
                 if (y == 0) {
                     imageData.pixels.add(currentPixel);
                 }
@@ -248,10 +256,10 @@ public class ImageData {
         }
     }
 
-
-
+    /**
+     * @return this will return an ArrayList of pixels
+     */
     public ArrayList<Pixel> getPixels(){ return pixels; }
-
 
 
     }
