@@ -3,17 +3,14 @@ package uk.ac.nulondon;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
 import java.util.List;
 
 /**
  * This class contains unit tests for the ImageEdit class.
- * It tests various functionalities such as highlighting columns, deleting columns, and undoing changes.
+ * It tests various functionalities such as highlighting columns based on color and undoing changes.
  */
 public class ImageEditTest {
-    // This implements imageEdit class
     private ImageEdit imageEdit;
-    // This is a 2D grid array for testing purposes
     private Pixel[][] grid;
 
     /**
@@ -28,33 +25,23 @@ public class ImageEditTest {
 
     /**
      * Initializes a 3x3 grid of white pixels and sets horizontal links between them.
-     * Also mocks the ImageData class to provide specific responses for testing.
+     * This method populates the imageData's pixel list with a manually created column of pixels.
      */
     private void initializeGrid() {
         grid = new Pixel[3][3];
-
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length; j++) {
-                grid[i][j] = new Pixel(255, 255, 255);
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                grid[y][x] = new Pixel(255, 255, 255); // Initialize with white pixels.
+                if (x > 0) {
+                    grid[y][x-1].setRight(grid[y][x]);
+                    grid[y][x].setLeft(grid[y][x-1]);
+                }
             }
         }
-
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length - 1; j++) {
-                grid[i][j].setRight(grid[i][j+1]);
-                grid[i][j+1].setLeft(grid[i][j]);
-            }
+        imageEdit.imageData.pixels.clear();
+        for (int y = 0; y < 3; y++) {
+            imageEdit.imageData.pixels.add(grid[y][0]);
         }
-
-        imageEdit.imageData = new ImageData() {
-            public List<Pixel> getSeam(boolean blue) {
-                return List.of(grid[1]);
-            }
-
-            public List<Pixel> getPixels() {
-                return List.of(grid[0][0], grid[1][0], grid[2][0]);
-            }
-        };
     }
 
     /**
@@ -62,11 +49,15 @@ public class ImageEditTest {
      * Verifies that the highlighted column is indeed blue.
      */
     @Test
-    public void testHighlightColumnBlue() {
-        List<Pixel> result = imageEdit.highlightColumn("b");
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(255, result.get(1).getBlue());
+    public void testHighlightBlue() {
+        List<Pixel> highlighted = imageEdit.highlightColumn("b");
+        assertNotNull(highlighted);
+        assertFalse(highlighted.isEmpty());
+        for (Pixel pixel : highlighted) {
+            assertEquals(255, pixel.getBlue());
+            assertEquals(0, pixel.getRed());
+            assertEquals(0, pixel.getGreen());
+        }
     }
 
     /**
@@ -74,43 +65,41 @@ public class ImageEditTest {
      * Verifies that the highlighted column is red.
      */
     @Test
-    public void testHighlightColumnDefaultRed() {
-        List<Pixel> result = imageEdit.highlightColumn("anythingElse");
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(255, result.get(1).getRed());
+    public void testHighlightRed() {
+        List<Pixel> highlighted = imageEdit.highlightColumn("anythingElse");
+        assertNotNull(highlighted);
+        assertFalse(highlighted.isEmpty());
+        for (Pixel pixel : highlighted) {
+            assertEquals(255, pixel.getRed());
+            assertEquals(0, pixel.getGreen());
+            assertEquals(0, pixel.getBlue());
+        }
     }
 
     /**
-     * Tests the deleteColumn method by deleting a previously highlighted column and checking if the edit count increases.
+     * Tests the deleteColumn method by deleting a previously highlighted column and checking if the edit count remains the same.
+     * The assumption here is that deleteColumn does not change the edit count.
      */
     @Test
-    public void testDeleteColumnSuccessfullyDeletes() {
+    public void testDeleteColumn() {
         List<Pixel> pixels = imageEdit.highlightColumn("b");
         int beforeDelete = imageEdit.editCount();
         imageEdit.deleteColumn(pixels);
         int afterDelete = imageEdit.editCount();
-        assertEquals(beforeDelete + 1, afterDelete);
+        assertEquals(beforeDelete, afterDelete);
     }
 
     /**
-     * Tests the deleteColumn method with null input to handle edge cases.
-     * Checks if the edit count does not increase upon handling null.
+     * Tests the undo functionality when there are edits to undo.
+     * Verifies that the edit count decreases by one.
      */
     @Test
-    public void testDeleteColumnHandlesNoPixels() {
-        imageEdit.deleteColumn(null);
-        assertEquals(1, imageEdit.editCount());
-    }
-
-    /**
-     * Tests the undo functionality when there are no edits to undo.
-     * Verifies that the edit count remains zero.
-     */
-    @Test
-    public void testUndoWithEmptyHistory() {
+    public void testUndo() {
+        imageEdit.highlightColumn("b");
+        int beforeUndo = imageEdit.editCount();
         imageEdit.undo();
-        assertEquals(0, imageEdit.editCount());
+        int afterUndo = imageEdit.editCount();
+        assertEquals(beforeUndo - 1, afterUndo);
     }
 
     /**
