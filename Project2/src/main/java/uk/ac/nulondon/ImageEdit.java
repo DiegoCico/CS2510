@@ -1,5 +1,7 @@
 package uk.ac.nulondon;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.List;
@@ -7,9 +9,21 @@ import java.util.Stack;
 
 public class ImageEdit {
     // This will store the deleted seam
-    private Stack<List<Pixel>> history = new Stack<>();
-    //Instance of ImageData class
+    private Stack<Pair<List<Pixel>, List<PColor>>>history = new Stack<>();
+    // Instance of ImageData class
     public ImageData imageData;
+
+    // A class for original colors of pixel seam
+    class PColor {
+        int red;
+        int green;
+        int blue;
+        public PColor(int red, int green, int blue) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
+    }
 
     /**
      * This is a constructor for ImageEdit using ImageData
@@ -39,12 +53,14 @@ public class ImageEdit {
     private List<Pixel> highlightBlue() {
         ArrayList<Pixel> pixels = new ArrayList<>();
         ArrayList<Pixel> oldPixels = new ArrayList<>();
+        ArrayList<PColor> oldColors = new ArrayList<>();
         for(Pixel p: imageData.getSeam(true)){
-            oldPixels.add(new Pixel(p));
+            oldPixels.add(p);
+            oldColors.add(new PColor(p.getRed(),p.getGreen(),p.getBlue()));
             p.setPixel(0, 0, 255);
             pixels.add(p);
         }
-        history.push(oldPixels);
+        history.push(Pair.of(oldPixels, oldColors));
         return pixels;
     }
 
@@ -55,12 +71,14 @@ public class ImageEdit {
     private List<Pixel> highlightRed() {
         ArrayList<Pixel> pixels = new ArrayList<>();
         ArrayList<Pixel> oldPixels = new ArrayList<>();
+        ArrayList<PColor> oldColors = new ArrayList<>();
         for(Pixel p: imageData.getSeam(false)){
-            oldPixels.add(new Pixel(p));
+            oldPixels.add(p);
+            oldColors.add(new PColor(p.getRed(),p.getGreen(),p.getBlue()));
             p.setPixel(255, 0, 0);
             pixels.add(p);
         }
-        history.push(oldPixels);
+        history.push(Pair.of(oldPixels, oldColors));
         return pixels;
     }
 
@@ -71,7 +89,6 @@ public class ImageEdit {
      */
     public void deleteColumn(List<Pixel> pixelsToRemove) {
         try {
-            history.push(pixelsToRemove);
             int count = pixelsToRemove.size() - 1;
             for (Pixel pixel : pixelsToRemove) {
                 if (pixel.getLeft() != null && pixel.getRight() != null) {
@@ -97,8 +114,22 @@ public class ImageEdit {
      */
     public void undo(){
         try {
-            history.pop();
-            List<Pixel> add = history.pop();
+            if (history.isEmpty()) {
+            System.out.println("No more undos available");
+            return;
+        }
+
+            Pair<List<Pixel>, List<PColor>> lastState = history.pop();
+
+            List<Pixel> pixels = lastState.getLeft();
+            List<PColor> colors = lastState.getRight();
+
+            ArrayList<Pixel> add = new ArrayList<>();
+            for(int i = 0; i < pixels.size(); i++){
+                add.add(pixels.get(i));
+                add.get(i).setPixel(colors.get(i).red,colors.get(i).green,colors.get(i).blue);
+            }
+
             int count = add.size() - 1;
             for (Pixel p : add) {
                 if (p.getLeft() != null) {
@@ -109,11 +140,7 @@ public class ImageEdit {
 
                 if (p.getRight() != null) {
                     p.getRight().setLeft(p);
-                } else {
-                    p.getLeft().setRight(p);
-
                 }
-
                 count--;
             }
         }

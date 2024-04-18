@@ -11,7 +11,9 @@ import java.util.List;
  * It tests various functionalities such as highlighting columns, deleting columns, and undoing changes.
  */
 public class ImageEditTest {
+    // This implements imageEdit class
     private ImageEdit imageEdit;
+    // This is a 2D grid array for testing purposes
     private Pixel[][] grid;
 
     /**

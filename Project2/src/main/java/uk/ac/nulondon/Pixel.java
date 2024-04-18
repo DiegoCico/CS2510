@@ -1,6 +1,5 @@
 package uk.ac.nulondon;
 
-import java.awt.*;
 
 /**
  * The Pixel class represents a pixel with red, green, and blue color values.
@@ -13,28 +12,6 @@ public class Pixel {
     private Pixel left = null;
     private Pixel right;
     private double energy;
-
-    /**
-     * This is a constructor to store un-highlighted versions of the seam to be deleted
-     * @param p
-     */
-    public Pixel(Pixel p){
-        this.r = p.r;
-        this.g = p.g;
-        this.b = p.b;
-        this.energy = p.energy;
-        this.left = p.left;
-        this.right = p.right;
-
-    }
-
-    public Pixel(Color c) {
-        this.r = c.getRed();
-        this.g = c.getGreen();
-        this.b = c.getBlue();
-        this.left = null;
-        this.right = null;
-    }
 
     /**
      * Default constructor that creates a black pixel (all values set to 0).

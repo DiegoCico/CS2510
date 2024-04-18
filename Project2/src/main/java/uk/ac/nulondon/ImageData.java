@@ -231,39 +231,8 @@ public class ImageData {
     }
 
     /**
-     * This will be used for testing purposes
-     * @param imageData example of imageData to test
-     * @param width example of width for imageData
-     * @param height example of height for imageData
-     * @param isBlue example if the lowest-energy or bluest seam is to be found
-     */
-    public void setupPixelDataForSeamTest(ImageData imageData, int width, int height, boolean isBlue) {
-        imageData.pixels = new ArrayList<>();
-
-        for (int y = 0; y < height; y++) {
-            Pixel previousPixel = null;
-            for (int x = 0; x < width; x++) {
-                int blue = (x == width / 2) ? 255 : 0;
-                double energy = (x == width / 2) ? 1.0 : 100.0;
-                Pixel currentPixel = new Pixel(0, 0, blue);
-                currentPixel.setEnergy(energy);
-                if (previousPixel != null) {
-                    previousPixel.setRight(currentPixel);
-                    currentPixel.setLeft(previousPixel);
-                }
-                if (y == 0) {
-                    imageData.pixels.add(currentPixel);
-                }
-                previousPixel = currentPixel;
-            }
-        }
-    }
-
-    /**
      * @return this will return an ArrayList of pixels
      */
     public List<Pixel> getPixels(){ return pixels; }
-
-
     }
 

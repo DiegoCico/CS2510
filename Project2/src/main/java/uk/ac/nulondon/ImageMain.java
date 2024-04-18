@@ -6,32 +6,13 @@ import java.util.List;
 import java.util.Scanner;
 
 public class ImageMain {
-        /*
-        User Interface
-            Your program should take the following key inputs:
-            “b” show the bluest seam in the image (highlight blue)
-            “e” show the seam with the lowest energy in the image (highlight red)
-            “d” delete the seam from the image and show the resulting image
-            “u” undo by reinserting the previously deleted seam back into the image
-            “q” quit the program and export the final image once more
-            For example, if the user enters B-D-E-D-U-Q, the program will display the blue highlight, delete the seam, display the lowest energy highlight, delete the seam, restore the most recently deleted seam, and export the final image.
-            If there is no seam highlighted, “d” should not delete anything and should prompt the user for an edit selection.
-            The user should be able to remove and restore any number of seams. You can experiment and go further by using a GUI to accept these commands, but this is not required.
-
-            Displaying Images
-            So that you can verify and see the changes made, the program will export the altered images to a temporary file after each change that is made to the image. These should be named tempIMG_x.png where x is a counter.
-            We require you to export changes at every step in this program.
-            If the user chooses blue (“b”), then the new image with the bluest seam highlighted in blue will be exported.
-            If the user choses lowest energy (“e”), the new image with the lowest energy seam highlighted in red will be exported.
-            If the user chooses to delete (“d”), the new image with the seam removed will be exported
-            After undoing (“u”), the image with the most recent seam removed (not the highlighted seam) is reinserted and the resulting image is exported
-            When the user quits (“q”) the program, we should export the final image once more. This will be the same image as your most recent edit, just with a different name i.e. newImg.png
-         */
-
-
+    // This is an instance of ImageEdit to handle image methods
     private static ImageEdit imageHandler;
+    // This will keep track of how many edits have been made
     private static int editCount = 0;
+    // This is the string to determine what operation on the seam occurs
     private static String choice = "";
+    // Initializes the scanner
     private static Scanner in;
 
     /**
@@ -109,7 +90,6 @@ public class ImageMain {
 
     /**
      * Get the user's input. Either a menu selection or confirmation value.
-     *
      * @return the user's input
      */
     private static String getUserInput() {
@@ -126,7 +106,21 @@ public class ImageMain {
         return keyValue;
     }
 
+    /**
+     * This method will use recursion until a valid file path is found
+     * @param filePath this is the user input
+     */
+    private static void fileFound(String filePath){
+        try {
+            imageHandler.imageData.importImage(filePath);
+        } catch (IOException e) {
+            System.out.println("File not found. Please try again.");
+            String neFile = getUserInput();
+            fileFound(neFile);
+        }
+    }
 
+    //Main method that serves as a UI
     public static void main(String[] args) {
         boolean shouldQuit = false;
 
@@ -136,13 +130,7 @@ public class ImageMain {
         String filePath = getUserInput();
         imageHandler = new ImageEdit();
 
-        // import the file
-        try {
-            imageHandler.imageData.importImage(filePath);
-        } catch (Exception e) {
-            System.out.println("Failed to import image");
-            System.exit(0);
-        }
+        fileFound(filePath);
 
         // display the menu after every edit
         while (!shouldQuit) {
@@ -156,12 +144,9 @@ public class ImageMain {
                 shouldQuit = true;
             }
         }
-
         // After the user exits, export the final image
         imageHandler.imageData.exportImage("newImg.png");
         in.close();
-
     }
-
 }
 
