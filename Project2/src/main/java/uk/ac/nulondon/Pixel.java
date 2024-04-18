@@ -1,5 +1,7 @@
 package uk.ac.nulondon;
 
+import java.awt.*;
+
 /**
  * The Pixel class represents a pixel with red, green, and blue color values.
  */
@@ -24,6 +26,14 @@ public class Pixel {
         this.left = p.left;
         this.right = p.right;
 
+    }
+
+    public Pixel(Color c) {
+        this.r = c.getRed();
+        this.g = c.getGreen();
+        this.b = c.getBlue();
+        this.left = null;
+        this.right = null;
     }
 
     /**

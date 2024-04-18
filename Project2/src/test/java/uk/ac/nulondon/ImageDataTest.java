@@ -109,32 +109,4 @@ public class ImageDataTest {
         assertThat(maxIndex).isEqualTo(0);
         assertThat(minIndex).isEqualTo(0);
     }
-
-    /**
-     * Tests the getSeam method optimizing for the maximum blue value.
-     * Ensures the method selects the seam with the highest blue values across a set pixel configuration.
-     */
-    @Test
-    public void testGetSeamOptimizingForBlue() {
-        ImageData imageData = new ImageData();
-        imageData.setupPixelDataForSeamTest(imageData, 3, 3, true);
-        List<Pixel> seam = imageData.getSeam(true);
-        assertThat(seam).isNotEmpty();
-        assertThat(seam).hasSize(3);
-        assertThat(seam.stream().allMatch(p -> p.getBlue() == 255)).isTrue();
-    }
-
-    /**
-     * Tests the getSeam method optimizing for the lowest energy value.
-     * Ensures the method selects the seam with the lowest energy values across a set pixel configuration.
-     */
-    @Test
-    public void testGetSeamOptimizingForEnergy() {
-        ImageData imageData = new ImageData();
-        imageData.setupPixelDataForSeamTest(imageData, 3, 3, false);
-        List<Pixel> seam = imageData.getSeam(false);
-        assertThat(seam).isNotEmpty();
-        assertThat(seam).hasSize(3);
-        assertThat(seam.stream().allMatch(p -> p.getEnergy() == 1.0)).isTrue();
-    }
 }

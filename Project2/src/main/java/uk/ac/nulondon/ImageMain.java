@@ -52,6 +52,10 @@ public class ImageMain {
         String option;
         switch (choice.toLowerCase()) {
             case "b":
+                if(imageHandler.imageData.getPixels().getFirst().getSizeLink() == 0) {
+                System.out.println("Image too small");
+                break;
+            }
                 // highlight and export intermediate image
                 List<Pixel> blueCol = imageHandler.highlightColumn(choice.toLowerCase());
                 imageHandler.imageData.exportImage("tempIMG_0" + editCount + ".png");
@@ -60,10 +64,17 @@ public class ImageMain {
                 // ask for confirmation and try to execute
                 System.out.println("Remove the bluest column. Continue? (Y/N)");
                 option = getUserInput();
-                if (option.toUpperCase().equals("Y")) { imageHandler.deleteColumn(blueCol);}
+                if (option.toUpperCase().equals("Y")) {
+
+                    imageHandler.deleteColumn(blueCol);
+                }
                 else imageHandler.undo();
                 break;
             case "r":
+                if(imageHandler.imageData.getPixels().getFirst().getSizeLink() == 0) {
+                System.out.println("Image too small");
+                break;
+            }
                 // highlight and export intermediate image
                 List<Pixel> redCol = imageHandler.highlightColumn("");
                 imageHandler.imageData.exportImage("tempIMG_0" + editCount + ".png");
@@ -72,13 +83,20 @@ public class ImageMain {
                 // ask for confirmation and try to execute
                 System.out.println("Remove a random column. Continue? (Y/N)");
                 option = getUserInput();
-                if (option.toUpperCase().equals("Y")) { imageHandler.deleteColumn(redCol);}
+                if (option.toUpperCase().equals("Y")) {
+
+                    imageHandler.deleteColumn(redCol);
+                }
                 else imageHandler.undo();
                 break;
             case "u":
                 System.out.println("Undo. Continue? (Y/N)");
                 option = getUserInput();
-                if (option.toUpperCase().equals("Y")) { imageHandler.undo();}
+                if (option.toUpperCase().equals("Y")) {
+                    imageHandler.undo();
+                    imageHandler.imageData.exportImage("tempIMG_0" + editCount + ".png");
+                    editCount++;
+                }
                 break;
             case "q":
                 System.out.println("Thanks for playing.");

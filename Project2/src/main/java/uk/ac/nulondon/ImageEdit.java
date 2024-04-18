@@ -111,6 +111,7 @@ public class ImageEdit {
                     p.getRight().setLeft(p);
                 } else {
                     p.getLeft().setRight(p);
+
                 }
 
                 count--;

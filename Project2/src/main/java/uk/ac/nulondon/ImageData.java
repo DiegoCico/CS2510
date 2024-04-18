@@ -80,11 +80,12 @@ public class ImageData {
     public void iterateEnergy() {
         if(pixels == null)
             return;
+
         for (Pixel pix : pixels) {
             Pixel up = (pixels.indexOf(pix) > 0) ? pixels.get(pixels.indexOf(pix) - 1) : pix;
             Pixel down = (pixels.indexOf(pix) < pixels.size() - 1) ? pixels.get(pixels.indexOf(pix) + 1) : pix;
 
-            while (pix.getRight() != null) {
+            while (pix != null) {
                 pix.setEnergy(calcEnergy(up, pix, down));
                 up = up.getRight();
                 down = down.getRight();
@@ -118,10 +119,10 @@ public class ImageData {
         int horizontal[] = {0, 0};
         int vertical[] = {0, 0};
 
-//        if(up == null)
-//            up = middle;
-//        if(down == null)
-//            down = middle;
+        if(up == null)
+            up = middle;
+        if(down == null)
+            down = middle;
 
         horizontal[0] = calculateBrightness(up.getLeft(),middle) + calculateBrightness(up,middle) * 2 + calculateBrightness(up.getRight(),middle);
         horizontal[1] = calculateBrightness(down.getLeft(),middle) + calculateBrightness(down,middle) * 2 + calculateBrightness(down.getRight(),middle);
